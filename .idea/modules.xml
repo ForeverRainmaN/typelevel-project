@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.app.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.app.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.common.common-sources.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.common.common-sources.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.common.coreJS.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.common.coreJS.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.common.coreJVM.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.common.coreJVM.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.rockthejvm-jobsboard-prod.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.rockthejvm-jobsboard-prod.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.rockthejvm-jobsboard-staging.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.rockthejvm-jobsboard-staging.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.server.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/typelevel-project.typelevel-project-build.iml" filepath="$PROJECT_DIR$/.idea/modules/typelevel-project.typelevel-project-build.iml" />
+    </modules>
+  </component>
+</project>

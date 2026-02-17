@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ScalaCompilerConfiguration">
+    <profile name="sbt 1" modules="typelevel-project,typelevel-project.common.coreJVM,typelevel-project.rockthejvm-jobsboard-prod,typelevel-project.rockthejvm-jobsboard-staging,typelevel-project.server" />
+    <profile name="sbt 2" modules="typelevel-project.app">
+      <parameters>
+        <parameter value="-scalajs" />
+        <parameter value="-Xsemanticdb" />
+        <parameter value="-semanticdb-target" />
+        <parameter value="D:\workspace\typelevel-project\app\target\scala-3.2.1\meta" />
+      </parameters>
+    </profile>
+    <profile name="sbt 3" modules="typelevel-project.common.coreJS">
+      <parameters>
+        <parameter value="-scalajs" />
+      </parameters>
+    </profile>
+  </component>
+</project>
