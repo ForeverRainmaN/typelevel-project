@@ -1,15 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module external.linked.project.id="stagingBuild [file:/D:/workspace/typelevel-project/]" external.linked.project.path="$MODULE_DIR$/../../build/staging" external.root.project.path="$MODULE_DIR$/../.." external.system.id="SBT" external.system.module.type="nestedProject" type="JAVA_MODULE" version="4">
   <component name="NewModuleRootManager" LANGUAGE_LEVEL="JDK_17">
-    <output url="file://$MODULE_DIR$/../../build/staging/target/scala-3.2.1/classes" />
-    <output-test url="file://$MODULE_DIR$/../../build/staging/target/scala-3.2.1/test-classes" />
+    <output url="file://$MODULE_DIR$/../../build/staging/target/scala-3.4.0/classes" />
+    <output-test url="file://$MODULE_DIR$/../../build/staging/target/scala-3.4.0/test-classes" />
     <exclude-output />
     <content url="file://$MODULE_DIR$/../../build/staging">
       <excludeFolder url="file://$MODULE_DIR$/../../build/staging/target" />
     </content>
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
-    <orderEntry type="library" name="sbt: scala-sdk-3.2.1" level="project" />
+    <orderEntry type="library" name="sbt: scala-sdk-3.4.0" level="project" />
     <orderEntry type="module" module-name="typelevel-project.common.common-sources" exported="" />
     <orderEntry type="module" module-name="typelevel-project.common.coreJVM" />
     <orderEntry type="module" module-name="typelevel-project.server" />
@@ -56,8 +56,8 @@
     <orderEntry type="library" name="sbt: org.log4s:log4s_3:1.10.0:jar" level="project" />
     <orderEntry type="library" name="sbt: org.postgresql:postgresql:42.2.23:jar" level="project" />
     <orderEntry type="library" name="sbt: org.scala-lang.modules:scala-collection-compat_3:2.4.4:jar" level="project" />
-    <orderEntry type="library" name="sbt: org.scala-lang:scala-library:2.13.10:jar" level="project" />
-    <orderEntry type="library" name="sbt: org.scala-lang:scala3-library_3:3.2.1:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scala-lang:scala-library:2.13.12:jar" level="project" />
+    <orderEntry type="library" name="sbt: org.scala-lang:scala3-library_3:3.4.0:jar" level="project" />
     <orderEntry type="library" name="sbt: org.scodec:scodec-bits_3:1.1.34:jar" level="project" />
     <orderEntry type="library" name="sbt: org.slf4j:slf4j-api:2.0.0:jar" level="project" />
     <orderEntry type="library" name="sbt: org.slf4j:slf4j-simple:2.0.0:jar" level="project" />

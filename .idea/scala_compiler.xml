@@ -7,7 +7,7 @@
         <parameter value="-scalajs" />
         <parameter value="-Xsemanticdb" />
         <parameter value="-semanticdb-target" />
-        <parameter value="D:\workspace\typelevel-project\app\target\scala-3.2.1\meta" />
+        <parameter value="D:\workspace\typelevel-project\app\target\scala-3.4.0\meta" />
       </parameters>
     </profile>
     <profile name="sbt 3" modules="typelevel-project.common.coreJS">

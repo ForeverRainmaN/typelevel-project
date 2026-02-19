@@ -1,7 +1,7 @@
 ThisBuild / version := "1.0.1"
 
 lazy val rockthejvm    = "com.rockthejvm"
-lazy val scala3Version = "3.2.1"
+lazy val scala3Version = "3.4.0"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Root - contains cats dep and compiler options
