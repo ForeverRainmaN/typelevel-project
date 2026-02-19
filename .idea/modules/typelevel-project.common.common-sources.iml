@@ -16,8 +16,8 @@
   <component name="SharedSourcesOwnerModules">
     <option name="ownersModuleNames">
       <list>
-        <option value="typelevel-project.common.coreJVM" />
         <option value="typelevel-project.common.coreJS" />
+        <option value="typelevel-project.common.coreJVM" />
       </list>
     </option>
   </component>

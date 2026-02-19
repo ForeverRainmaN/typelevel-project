@@ -4,6 +4,41 @@ lazy val rockthejvm    = "com.rockthejvm"
 lazy val scala3Version = "3.2.1"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
+// Root - contains cats dep and compiler options
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
+
+lazy val root = (project in file("."))
+  .settings(
+    name := "typelevel-project",
+    scalaVersion := scala3Version,
+    libraryDependencies ++= Seq(
+      "org.typelevel" %% "cats-effect" % catsEffectVersion,
+      "org.typelevel"         %% "cats-effect"         % catsEffectVersion,
+      "org.http4s"            %% "http4s-dsl"          % http4sVersion,
+      "org.http4s"            %% "http4s-ember-server" % http4sVersion,
+      "org.http4s"            %% "http4s-circe"        % http4sVersion,
+      "io.circe"              %% "circe-generic"       % circeVersion,
+      "io.circe"              %% "circe-fs2"           % circeVersion,
+      "org.tpolecat"          %% "doobie-core"         % doobieVersion,
+      "org.tpolecat"          %% "doobie-hikari"       % doobieVersion,
+      "org.tpolecat"          %% "doobie-postgres"     % doobieVersion,
+      "org.tpolecat"          %% "doobie-scalatest"    % doobieVersion    % Test,
+      "com.github.pureconfig" %% "pureconfig-core"     % pureConfigVersion,
+      "org.typelevel"         %% "log4cats-slf4j"      % log4catsVersion,
+      "org.slf4j"              % "slf4j-simple"        % slf4jVersion,
+      "io.github.jmcardon"    %% "tsec-http4s"         % tsecVersion,
+      "com.sun.mail"           % "javax.mail"          % javaMailVersion,
+      "com.stripe"             % "stripe-java"         % stripeVersion,
+      "org.typelevel"         %% "log4cats-noop"       % log4catsVersion  % Test,
+      "org.scalatest"         %% "scalatest"           % scalaTestVersion % Test,
+      "org.typelevel"     %% "cats-effect-testing-scalatest" % scalaTestCatsEffectVersion % Test,
+      "org.testcontainers" % "testcontainers"                % testContainerVersion       % Test,
+      "org.testcontainers" % "postgresql"                    % testContainerVersion       % Test,
+      "ch.qos.logback"     % "logback-classic"               % logbackVersion             % Test
+    ),
+  )
+
+///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Common - contains domain model
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
@@ -43,13 +78,16 @@ lazy val app = (project in file("app"))
       "io.circe"        %%% "circe-parser"  % circeVersion,
       "io.circe"        %%% "circe-generic" % circeVersion
     ),
-    scalaJSLinkerConfig ~= { _.withModuleKind(ModuleKind.CommonJSModule) },
+    scalaJSLinkerConfig ~= {
+      _.withModuleKind(ModuleKind.CommonJSModule)
+    },
     semanticdbEnabled := true,
     autoAPIMappings   := true
   )
   .dependsOn(core.js)
 
 lazy val catsEffectVersion          = "3.3.14"
+lazy val catsCoreVersion            = "2.12.0"
 lazy val http4sVersion              = "0.23.15"
 lazy val doobieVersion              = "1.0.0-RC1"
 lazy val pureConfigVersion          = "0.17.1"
