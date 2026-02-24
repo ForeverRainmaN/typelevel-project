@@ -8,8 +8,8 @@ object Job {
       id: UUID,
       date: Long,
       ownerEmail: String,
-      jobInfo: JobInfo,
-      active: Boolean = false
+      active: Boolean = false,
+      jobInfo: JobInfo
   )
 
   case class JobInfo(
