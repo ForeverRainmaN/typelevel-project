@@ -1,11 +1,12 @@
 package com.rockthejvm.jobsboard
 
 import cats.*
-import cats.effect.{IO, IOApp}
+import cats.effect.IO
+import cats.effect.IOApp
 import cats.implicits.*
 import com.rockthejvm.jobsboard.config.*
 import com.rockthejvm.jobsboard.config.syntax.*
-import com.rockthejvm.jobsboard.http.HttpApi
+import com.rockthejvm.jobsboard.modules.*
 import org.http4s.ember.server.EmberServerBuilder
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
@@ -16,12 +17,17 @@ object Application extends IOApp.Simple {
 
   override def run: IO[Unit] =
     ConfigSource.default.loadF[IO, EmberConfig].flatMap { config =>
-      EmberServerBuilder
-        .default[IO]
-        .withHost(config.host)
-        .withPort(config.port)
-        .withHttpApp(HttpApi[IO].endpoints.orNotFound)
-        .build
-        .use(_ => IO.println("Rock the JVM!") >> IO.never)
+      val appResource = for {
+        core    <- Core[IO]
+        httpApi <- HttpApi[IO](core)
+        server <- EmberServerBuilder
+          .default[IO]
+          .withHost(config.host)
+          .withPort(config.port)
+          .withHttpApp(httpApi.endpoints.orNotFound)
+          .build
+      } yield server
+
+      appResource.use(_ => IO.println("Rock The JVM!") *> IO.never)
     }
 }
