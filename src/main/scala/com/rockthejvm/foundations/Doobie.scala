@@ -1,21 +1,27 @@
 package com.rockthejvm.foundations
+import cats.effect.IO
+import cats.effect.IOApp
 import cats.effect.kernel.MonadCancelThrow
-import cats.effect.{IO, IOApp}
+import doobie.free.driver
 import doobie.hikari.HikariTransactor
 import doobie.implicits.*
 import doobie.util.ExecutionContexts
 import doobie.util.transactor.Transactor
 
+import java.util.Properties
+
 object Doobie extends IOApp.Simple {
 
   case class Student(id: Int, name: String)
 
-  val xa: Transactor[IO] = Transactor.fromDriverManager[IO](
-    "org.postgresql.Driver",                 // JDBC connector
-    "jdbc:postgresql://localhost:5436/demo", // database url
-    "docker",
-    "docker"
-  )
+  val xa: Transactor[IO] = Transactor
+    .fromDriverManager[IO](
+      "org.postgresql.Driver",                 // JDBC connector
+      "jdbc:postgresql://localhost:5436/demo", // database url
+      "docker",
+      "docker",
+      None
+    )
 
   def findAllStudentNames: IO[List[String]] = {
     val query  = sql"select name from students".query[String]

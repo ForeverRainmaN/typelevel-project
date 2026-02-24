@@ -1,6 +1,5 @@
 package com.rockthejvm.jobsboard.algebra
 
-import cats.*
 import cats.effect.kernel.MonadCancelThrow
 import cats.implicits.*
 import com.rockthejvm.jobsboard.domain.Job.*
@@ -19,6 +18,8 @@ trait Jobs[F[_]] {
 }
 
 class LiveJobs[F[_]: MonadCancelThrow] private (xa: Transactor[F]) extends Jobs[F] {
+  private val columns: Fragment =
+    fr"id, date, ownerEmail, active, company, title, description, externalUrl, remote, location, salaryLo, salaryHi, currency, country, tags, image, seniority, other"
 
   override def create(ownerEmail: String, jobInfo: JobInfo): F[UUID] =
     sql"""
@@ -42,7 +43,7 @@ class LiveJobs[F[_]: MonadCancelThrow] private (xa: Transactor[F]) extends Jobs[
         active
        ) VALUES (
           ${System.currentTimeMillis()},
-          ${ownerEmail},
+          $ownerEmail,
           ${jobInfo.company},
           ${jobInfo.title},
           ${jobInfo.description},
@@ -64,53 +65,16 @@ class LiveJobs[F[_]: MonadCancelThrow] private (xa: Transactor[F]) extends Jobs[
       .transact(xa)
 
   override def all(): F[List[Job]] =
-    sql"""
-      SELECT
-        id,
-        date,
-        ownerEmail,
-        company,
-        title,
-        description,
-        externalUrl,
-        remote,
-        location,
-        salaryLo,
-        salaryHi,
-        currency,
-        country,
-        tags,
-        image,
-        seniority,
-        other,
-        active
-      FROM jobs
-    """.query[Job].to[List].transact(xa)
+    (fr"SELECT" ++ columns ++ fr"FROM jobs")
+      .query[Job]
+      .to[List]
+      .transact(xa)
 
   override def find(id: UUID): F[Option[Job]] =
-    sql"""
-      SELECT
-        id,
-        date,
-        ownerEmail,
-        company,
-        title,
-        description,
-        externalUrl,
-        remote,
-        location,
-        salaryLo,
-        salaryHi,
-        currency,
-        country,
-        tags,
-        image,
-        seniority,
-        other,
-        active
-      FROM jobs
-      WHERE id = $id
-    """.query[Job].option.transact(xa)
+    (fr"SELECT" ++ columns ++ fr"FROM jobs WHERE id = $id")
+      .query[Job]
+      .option
+      .transact(xa)
 
   override def update(id: UUID, jobInfo: JobInfo): F[Option[Job]] =
     sql"""
@@ -207,5 +171,6 @@ object LiveJobs {
       )
   }
 
-  def apply[F[_]: MonadCancelThrow](xa: Transactor[F]): F[LiveJobs[F]] = new LiveJobs[F](xa).pure[F]
+  def apply[F[_]: MonadCancelThrow](xa: Transactor[F]): F[LiveJobs[F]] =
+    new LiveJobs[F](xa).pure[F]
 }
