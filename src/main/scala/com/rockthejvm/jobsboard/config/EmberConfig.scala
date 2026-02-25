@@ -1,6 +1,7 @@
 package com.rockthejvm.jobsboard.config
 
-import com.comcast.ip4s.{Host, Port}
+import com.comcast.ip4s.Host
+import com.comcast.ip4s.Port
 import pureconfig.ConfigReader
 import pureconfig.error.CannotConvert
 import pureconfig.generic.derivation.default.*
