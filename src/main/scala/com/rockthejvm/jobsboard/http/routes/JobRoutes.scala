@@ -6,8 +6,8 @@ import com.rockthejvm.jobsboard.domain.Job.*
 import com.rockthejvm.jobsboard.http.responses.FailureResponse
 import io.circe.generic.auto.*
 import io.circe.syntax.*
-import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.server.Router
 import org.typelevel.log4cats.Logger

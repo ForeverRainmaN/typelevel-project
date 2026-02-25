@@ -7,6 +7,8 @@ import cats.implicits.*
 import com.rockthejvm.jobsboard.config.*
 import com.rockthejvm.jobsboard.config.syntax.*
 import com.rockthejvm.jobsboard.modules.*
+import com.rockthejvm.jobsboard.modules.Database
+import com.rockthejvm.jobsboard.modules.HttpApi
 import org.http4s.ember.server.EmberServerBuilder
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
