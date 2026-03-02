@@ -1,0 +1,13 @@
+services:
+  postgres-test:
+    image: postgres:15
+    container_name: typelevel-test-db
+    environment:
+      POSTGRES_USER: testuser
+      POSTGRES_PASSWORD: testpass
+      POSTGRES_DB: testdb
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./src/test/resources/sql/jobs.sql:/docker-entrypoint-initdb.d/jobs.sql
+    tmpfs: /var/lib/postgresql/data

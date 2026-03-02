@@ -5,7 +5,7 @@ ThisBuild / organization := "com.rockthejvm"
 val catsEffectVersion          = "3.5.4"
 val http4sVersion              = "0.23.27"
 val doobieVersion              = "1.0.0-RC5"
-val circeVersion               = "0.14.8" // понижена версия
+val circeVersion               = "0.14.8"
 val pureConfigVersion          = "0.17.7"
 val log4catsVersion            = "2.7.0"
 val tsecVersion                = "0.5.0"
@@ -69,3 +69,19 @@ lazy val root = (project in file("."))
     ),
     Compile / mainClass := Some("com.rockthejvm.jobsboard.Application")
   )
+
+lazy val startTestDb = taskKey[Unit]("Start test database")
+startTestDb := {
+  import scala.sys.process._
+  "docker-compose -f docker-compose.test.yml up -d".!
+}
+
+lazy val stopTestDb = taskKey[Unit]("Stop test database")
+stopTestDb := {
+  import scala.sys.process._
+  "docker-compose -f docker-compose.test.yml down".!
+}
+
+Test / fork := true
+
+Test / test := (Test / test).dependsOn(startTestDb).value

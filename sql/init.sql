@@ -6,6 +6,7 @@ create TABLE
         id uuid DEFAULT gen_random_uuid(),
         date bigint NOT NULL,
         ownerEmail text NOT NULL,
+        active boolean NOT NULL DEFAULT false
         company text NOT NULL,
         title text NOT NULL,
         description text NOT NULL,
@@ -20,7 +21,6 @@ create TABLE
         image text,
         seniority text,
         other text,
-        active boolean NOT NULL DEFAULT false
     );
 
 alter table jobs add CONSTRAINT pk_jobs PRIMARY KEY (id);
