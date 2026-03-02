@@ -1,5 +1,7 @@
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+
 CREATE TABLE jobs (
-    id UUID PRIMARY KEY,
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     date BIGINT,
     ownerEmail TEXT,
     active BOOLEAN,
@@ -42,7 +44,7 @@ INSERT INTO jobs (
     '843df718-ec6e-4d49-9289-f799c0f40064',
     1659186086,
     'daniel@rockthejvm.com',
-    false,
+    true,
     'Awesome Company',
     'Tech Lead',
     'An awesome job in Berlin',
