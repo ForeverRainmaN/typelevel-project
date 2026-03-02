@@ -73,6 +73,7 @@ lazy val root = (project in file("."))
 lazy val startTestDb = taskKey[Unit]("Start test database")
 startTestDb := {
   import scala.sys.process._
+  "docker-compose -f docker-compose.test.yml down -v".!
   "docker-compose -f docker-compose.test.yml up -d".!
 }
 
