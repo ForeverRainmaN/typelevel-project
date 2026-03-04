@@ -29,22 +29,15 @@ class JobsSpec
   val config: IO[PostgresTestConfig] =
     ConfigSource.resources("test.conf").at("test-database").loadF[IO, PostgresTestConfig]
 
-  def withTransactor[A](test: Transactor[IO] => IO[A]): IO[A] =
-    config.flatMap { c =>
-      createTransactor(c).use { xa =>
-        sql"TRUNCATE jobs".update.run.transact(xa) >> test(xa)
-      }
-    }
-
   "Jobs 'algebra'" - {
     "should return no job if the given UUID does not exist" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         LiveJobs[IO](xa).flatMap(_.find(NotFoundJobUuid))
       }.asserting(_ shouldBe None)
     }
 
     "should retrieve a job by id" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         for {
           jobs <- LiveJobs[IO](xa)
           id   <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
@@ -54,7 +47,7 @@ class JobsSpec
     }
 
     "should retrieve all jobs" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         for {
           jobs <- LiveJobs[IO](xa)
           id   <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
@@ -67,7 +60,7 @@ class JobsSpec
     }
 
     "should create a new job" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         for {
           jobs     <- LiveJobs[IO](xa)
           jobId    <- jobs.create("daniel@rockthejvm.com", RockTheJvmNewJob)
@@ -77,7 +70,7 @@ class JobsSpec
     }
 
     "should return an updated job if it exists" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         for {
           jobs            <- LiveJobs[IO](xa)
           id              <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
@@ -90,13 +83,13 @@ class JobsSpec
     }
 
     "should return none when trying to update a job that does not exist" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         LiveJobs[IO](xa).flatMap(_.update(NotFoundJobUuid, UpdatedAwesomeJob.jobInfo))
       }.asserting(_ shouldBe None)
     }
 
     "should delete an existing job" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         for {
           jobs         <- LiveJobs[IO](xa)
           id           <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
@@ -110,20 +103,17 @@ class JobsSpec
     }
 
     "should return zero updated rows if the job ID to delete is not found" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         LiveJobs[IO](xa).flatMap(_.delete(NotFoundJobUuid))
       }.asserting(_ shouldBe 0)
     }
 
     "should filter remote jobs" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         for {
           jobs <- LiveJobs[IO](xa)
           _    <- jobs.create("remote@test.com", RockTheJvmNewJob.copy(remote = true))
-          _ <- jobs.create(
-            "office@test.com",
-            AwesomeJob.jobInfo.copy(remote = false)
-          )
+          _    <- jobs.create("office@test.com", AwesomeJob.jobInfo.copy(remote = false))
           filteredRemoteTrue  <- jobs.all(JobFilter(remote = true), Pagination.default)
           filteredRemoteFalse <- jobs.all(JobFilter(remote = false), Pagination.default)
         } yield (filteredRemoteTrue, filteredRemoteFalse)
@@ -136,7 +126,7 @@ class JobsSpec
     }
 
     "should filter jobs by tags" in {
-      withTransactor { xa =>
+      withTransactor(config) { xa =>
         for {
           jobs     <- LiveJobs[IO](xa)
           _        <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
