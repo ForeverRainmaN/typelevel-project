@@ -1,23 +1,29 @@
 package com.rockthejvm.jobsboard.algebra
 
+import cats.*
+import cats.effect.IO
 import cats.effect.kernel.MonadCancelThrow
 import cats.implicits.*
 import com.rockthejvm.jobsboard.domain.Job.*
+import com.rockthejvm.jobsboard.domain.pagination.*
+import com.rockthejvm.jobsboard.logging.syntax.*
 import doobie.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
+import org.typelevel.log4cats.Logger
 
 import java.util.UUID
 
 trait Jobs[F[_]] {
   def create(ownerEmail: String, jobInfo: JobInfo): F[UUID]
   def all(): F[List[Job]]
+  def all(filter: JobFilter, pagination: Pagination): F[List[Job]]
   def find(id: UUID): F[Option[Job]]
   def update(id: UUID, jbInfo: JobInfo): F[Option[Job]]
   def delete(id: UUID): F[Int]
 }
 
-class LiveJobs[F[_]: MonadCancelThrow] private (xa: Transactor[F]) extends Jobs[F] {
+class LiveJobs[F[_]: MonadCancelThrow: Logger] private (xa: Transactor[F]) extends Jobs[F] {
   private val columns: Fragment =
     fr"id, date, ownerEmail, active, company, title, description, externalUrl, remote, location, salaryLo, salaryHi, currency, country, tags, image, seniority, other"
 
@@ -69,6 +75,29 @@ class LiveJobs[F[_]: MonadCancelThrow] private (xa: Transactor[F]) extends Jobs[
       .query[Job]
       .to[List]
       .transact(xa)
+
+  override def all(filter: JobFilter, pagination: Pagination): F[List[Job]] = {
+    val whereFragment: Fragment = Fragments.whereAndOpt(
+      filter.companies.toNel.map(companies => Fragments.in(fr"company", companies)),
+      filter.locations.toNel.map(locations => Fragments.in(fr"location", locations)),
+      filter.countries.toNel.map(countries => Fragments.in(fr"country", countries)),
+      filter.seniorities.toNel.map(seniorities => Fragments.in(fr"seniority", seniorities)),
+      filter.tags.toNel.map(tags => Fragments.or(tags.map(tag => fr"$tag = ANY(tags)"))),
+      filter.maxSalary.map(salary => fr"salaryHi > $salary"),
+      filter.remote.some.map(remote => fr"remote = $remote")
+    )
+
+    val paginationFragment: Fragment =
+      fr"ORDER BY id LIMIT ${pagination.limit} OFFSET ${pagination.offset}"
+
+    val statement =
+      fr"SELECT" |+| columns |+| fr"FROM jobs" |+| whereFragment |+| paginationFragment
+
+    statement
+      .query[Job]
+      .to[List]
+      .transact(xa)
+  }
 
   override def find(id: UUID): F[Option[Job]] =
     (fr"SELECT" ++ columns ++ fr"FROM jobs WHERE id = $id")
@@ -171,6 +200,6 @@ object LiveJobs {
       )
   }
 
-  def apply[F[_]: MonadCancelThrow](xa: Transactor[F]): F[LiveJobs[F]] =
+  def apply[F[_]: MonadCancelThrow: Logger](xa: Transactor[F]): F[LiveJobs[F]] =
     new LiveJobs[F](xa).pure[F]
 }

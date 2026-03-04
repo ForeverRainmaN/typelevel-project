@@ -5,6 +5,7 @@ import cats.effect.testing.scalatest.AsyncIOSpec
 import cats.implicits.*
 import com.rockthejvm.jobsboard.algebra.*
 import com.rockthejvm.jobsboard.domain.Job.*
+import com.rockthejvm.jobsboard.domain.pagination.*
 import com.rockthejvm.jobsboard.fixtures.JobFixture
 import io.circe.generic.auto.*
 import io.circe.syntax.*
@@ -44,6 +45,10 @@ class JobRoutesSpec
 
     override def all(): IO[List[Job]] =
       IO.pure(List(AwesomeJob))
+
+    override def all(filter: JobFilter, pagination: Pagination): IO[List[Job]] =
+      if (filter.remote) IO.pure(List())
+      else IO.pure(List(AwesomeJob))
   }
 
   given logger: Logger[IO]      = Slf4jLogger.getLogger[IO]
@@ -64,13 +69,43 @@ class JobRoutesSpec
 
     "should return all jobs" in {
       for {
-        response <- jobRoutes.orNotFound.run(
-          Request(method = Method.GET, uri = uri"/jobs")
-        )
+        response <- jobRoutes.orNotFound
+          .run(
+            Request(method = Method.GET, uri = uri"/jobs")
+              .withEntity(JobFilter())
+          )
         retrieved <- response.as[List[Job]]
       } yield {
         response.status shouldBe Status.Ok
         retrieved shouldBe List(AwesomeJob)
+      }
+    }
+
+    "should return all jobs that satisfy a filter" in {
+      for {
+        response <- jobRoutes.orNotFound
+          .run(
+            Request(method = Method.GET, uri = uri"/jobs")
+              .withEntity(JobFilter(remote = false))
+          )
+        retrieved <- response.as[List[Job]]
+      } yield {
+        response.status shouldBe Status.Ok
+        retrieved shouldBe List(AwesomeJob)
+      }
+    }
+
+    "should return empty list if nothing was found while filtering" in {
+      for {
+        response <- jobRoutes.orNotFound
+          .run(
+            Request(method = Method.GET, uri = uri"/jobs")
+              .withEntity(JobFilter(remote = true))
+          )
+        retrieved <- response.as[List[Job]]
+      } yield {
+        response.status shouldBe Status.Ok
+        retrieved shouldBe List()
       }
     }
 
