@@ -9,5 +9,5 @@ services:
     ports:
       - "5433:5432"
     volumes:
-      - ./src/test/resources/sql/jobs.sql:/docker-entrypoint-initdb.d/jobs.sql
+      - ./src/test/resources/sql/schema.sql:/docker-entrypoint-initdb.d/schema.sql
     tmpfs: /var/lib/postgresql/data
