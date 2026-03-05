@@ -34,7 +34,7 @@ lazy val root = (project in file("."))
       "org.http4s" %% "http4s-ember-server" % http4sVersion,
       "org.http4s" %% "http4s-circe"        % http4sVersion,
 
-      // JSON (без circe-fs2, т.к. версия 0.14.8 уже есть, а fs2 может быть не нужен)
+      // JSON
       "io.circe" %% "circe-core"    % circeVersion,
       "io.circe" %% "circe-generic" % circeVersion,
       "io.circe" %% "circe-parser"  % circeVersion,
@@ -69,6 +69,8 @@ lazy val root = (project in file("."))
     ),
     Compile / mainClass := Some("com.rockthejvm.jobsboard.Application")
   )
+
+// ========= testing scripts ===========
 
 lazy val startTestDb = taskKey[Unit]("Start test database")
 startTestDb := {

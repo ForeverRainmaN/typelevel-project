@@ -6,35 +6,43 @@ import com.rockthejvm.jobsboard.domain.user
 import user.*
 
 trait UserFixture {
-  val InvalidEmail = "myInvalidEmail.com"
-  val ValidEmail   = "daniel@rockthejvm.com"
+  val InvalidEmail   = "myInvalidEmail.com"
+  val AdminEmail     = "admin@something.com"
+  val RecruiterEmail = "recruiter@something.com"
 
-  val ValidUserAdmin =
+  val Admin =
     User(
-      email = "daniel@rockthejvm.com",
-      hashedPassword = "hashedPassword",
-      firstName = Some("Daniel"),
-      lastName = Some("Kurchin"),
-      company = Some("Rock The JVM"),
+      email = AdminEmail,
+      hashedPassword = "adminPassword",
+      firstName = Some("firstName"),
+      lastName = Some("lastName"),
+      company = Some("someCompany"),
       role = Role.ADMIN
     )
 
-  val ValidUserRecruiter =
-    ValidUserAdmin.copy(role = Role.RECRUITER)
+  val Recruiter =
+    User(
+      email = RecruiterEmail,
+      hashedPassword = "recruiterPassword",
+      firstName = Some("firstName2"),
+      lastName = Some("lastName2"),
+      company = Some("someOtherCompany"),
+      role = Role.RECRUITER
+    )
 
   val InvalidUser =
     User(
       email = InvalidEmail,
       hashedPassword = "hashedPassword2",
-      firstName = Some("Daniel"),
-      lastName = Some("Kurchin"),
-      company = Some("Rock The JVM"),
+      firstName = Some("invalidFistName"),
+      lastName = Some("invalidLastName"),
+      company = Some("invalidCompany"),
       role = Role.ADMIN
     )
 
-  val UpdatedUserAdmin =
+  val UpdatedAdmin =
     User(
-      email = "daniel@rockthejvm.com",
+      email = AdminEmail,
       hashedPassword = "HASHEDPASSWORD",
       firstName = Some("Megan"),
       lastName = Some("Fox"),

@@ -20,15 +20,15 @@ class UsersSpec extends AllTestsSpec with UserFixture with Inside {
         for {
           _                <- truncateTable(xa)("users")
           users            <- LiveUsers[IO](xa)
-          createdUserEmail <- users.create(ValidUserAdmin)
+          createdUserEmail <- users.create(Admin)
           maybeUser <- sql"SELECT * FROM users WHERE email = $createdUserEmail"
             .query[User]
             .option
             .transact(xa)
         } yield (createdUserEmail, maybeUser)
       }.asserting { case (email, maybeUser) =>
-        email shouldBe ValidEmail
-        maybeUser shouldBe Some(ValidUserAdmin)
+        email shouldBe AdminEmail
+        maybeUser shouldBe Some(Admin)
       }
     }
 
@@ -37,10 +37,10 @@ class UsersSpec extends AllTestsSpec with UserFixture with Inside {
         for {
           _                <- truncateTable(xa)("users")
           users            <- LiveUsers[IO](xa)
-          createdUserEmail <- users.create(ValidUserAdmin)
+          createdUserEmail <- users.create(Admin)
           maybeUser        <- users.find(createdUserEmail)
         } yield maybeUser
-      }.asserting { _ shouldBe Some(ValidUserAdmin) }
+      }.asserting { _ shouldBe Some(Admin) }
     }
 
     "should return None if the email doesn't exist" in {
@@ -58,8 +58,8 @@ class UsersSpec extends AllTestsSpec with UserFixture with Inside {
         for {
           _       <- truncateTable(xa)("users")
           users   <- LiveUsers[IO](xa)
-          _       <- users.create(ValidUserRecruiter)
-          outcome <- users.create(ValidUserRecruiter).attempt
+          _       <- users.create(Recruiter)
+          outcome <- users.create(Recruiter).attempt
         } yield outcome
       }.asserting { result =>
         inside(result) {
@@ -76,7 +76,7 @@ class UsersSpec extends AllTestsSpec with UserFixture with Inside {
         for {
           _         <- truncateTable(xa)("users")
           users     <- LiveUsers[IO](xa)
-          maybeUser <- users.update(ValidUserAdmin)
+          maybeUser <- users.update(Admin)
         } yield maybeUser
       }.asserting(_ shouldBe None)
     }
@@ -86,10 +86,10 @@ class UsersSpec extends AllTestsSpec with UserFixture with Inside {
         for {
           _         <- truncateTable(xa)("users")
           users     <- LiveUsers[IO](xa)
-          userEmail <- users.create(ValidUserAdmin)
-          maybeUser <- users.update(UpdatedUserAdmin)
+          userEmail <- users.create(Admin)
+          maybeUser <- users.update(UpdatedAdmin)
         } yield maybeUser
-      }.asserting(_ shouldBe Some(UpdatedUserAdmin))
+      }.asserting(_ shouldBe Some(UpdatedAdmin))
     }
 
     "should delete a user" in {
@@ -97,9 +97,9 @@ class UsersSpec extends AllTestsSpec with UserFixture with Inside {
         for {
           _         <- truncateTable(xa)("users")
           users     <- LiveUsers[IO](xa)
-          _         <- users.create(ValidUserAdmin)
-          isDeleted <- users.delete(ValidUserAdmin.email)
-          maybeUser <- sql"SELECT * FROM users WHERE email = ${ValidUserAdmin.email}"
+          _         <- users.create(Admin)
+          isDeleted <- users.delete(Admin.email)
+          maybeUser <- sql"SELECT * FROM users WHERE email = ${Admin.email}"
             .query[User]
             .option
             .transact(xa)
@@ -115,7 +115,7 @@ class UsersSpec extends AllTestsSpec with UserFixture with Inside {
         for {
           _         <- truncateTable(xa)("users")
           users     <- LiveUsers[IO](xa)
-          isDeleted <- users.delete(ValidEmail)
+          isDeleted <- users.delete(AdminEmail)
         } yield isDeleted
       }.asserting(_ shouldBe false)
     }
