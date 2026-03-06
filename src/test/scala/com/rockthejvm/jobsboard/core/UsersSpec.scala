@@ -12,7 +12,7 @@ import doobie.postgres.implicits.*
 import org.postgresql.util.PSQLException
 import org.scalatest.Inside
 
-class UsersSpec extends AllTestsSpec with UserFixture with Inside {
+class UsersSpec extends AllTestsSpec with Inside with UserFixture {
 
   "User's 'algebra'" - {
     "should create a user" in {

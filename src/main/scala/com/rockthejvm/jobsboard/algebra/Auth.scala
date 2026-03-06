@@ -2,13 +2,18 @@ package com.rockthejvm.jobsboard.algebra
 
 import cats.effect.*
 import cats.implicits.*
+import com.rockthejvm.jobsboard.domain.Role
 import com.rockthejvm.jobsboard.domain.auth.*
 import com.rockthejvm.jobsboard.domain.security.*
 import com.rockthejvm.jobsboard.domain.user.*
+import doobie.free.resultset
+import org.checkerframework.checker.units.qual.m
 import org.typelevel.log4cats.Logger
 import tsec.authentication.AugmentedJWT
+import tsec.passwordhashers.PasswordHash
+import tsec.passwordhashers.jca.BCrypt
 
-trait Auth[F[_]] {
+trait Auth[F[_]: Async: Logger] {
   def login(email: String, password: String): F[Option[JWTToken]]
   def signUp(newUserInfo: NewUserInfo): F[Option[User]]
   def changePassword(
@@ -17,21 +22,71 @@ trait Auth[F[_]] {
   ): F[Either[String, Option[User]]]
 }
 
-class LiveAuth[F[_]: MonadCancelThrow: Logger] private (
+class LiveAuth[F[_]: Async: Logger] private (
     users: Users[F],
     authenticator: Authenticator[F]
 ) extends Auth[F] {
-  override def login(email: String, password: String): F[Option[JWTToken]] = ???
+  override def login(email: String, password: String): F[Option[JWTToken]] =
+    for {
+      maybeUser <- users.find(email)
+      maybeValidatedUser <- maybeUser.filterA(user =>
+        BCrypt.checkpwBool[F](password, PasswordHash[BCrypt](user.hashedPassword))
+      )
+      maybeJWTToken <- maybeValidatedUser.traverse(user => authenticator.create(user.email))
+    } yield maybeJWTToken
+  override def signUp(newUserInfo: NewUserInfo): F[Option[User]] =
+    users.find(newUserInfo.email).flatMap {
+      case Some(_) => None.pure[F]
+      case None =>
+        for {
+          hashedPassword <- BCrypt.hashpw[F](newUserInfo.password)
+          user <- User(
+            newUserInfo.email,
+            hashedPassword,
+            newUserInfo.firstName,
+            newUserInfo.lastName,
+            newUserInfo.company,
+            Role.RECRUITER
+          ).pure[F]
 
-  override def signUp(newUserInfo: NewUserInfo): F[Option[User]] = ???
-
+          _ <- users.create(user)
+        } yield Some(user)
+    }
   override def changePassword(
       email: String,
       newPasswordInfo: NewPasswordInfo
-  ): F[Either[String, Option[User]]] = ???
+  ): F[Either[String, Option[User]]] = {
+    def updateUser(user: User, newPassword: String): F[Option[User]] =
+      for {
+        newHashed   <- BCrypt.hashpw[F](newPasswordInfo.newPassword)
+        updatedUser <- users.update(user.copy(hashedPassword = newHashed))
+      } yield updatedUser
+
+    def checkAndUpdate(
+        user: User,
+        oldPassword: String,
+        newPassword: String
+    ): F[Either[String, Option[User]]] = {
+      for {
+        passCheck <- BCrypt
+          .checkpwBool[F](newPasswordInfo.oldPassword, PasswordHash(user.hashedPassword))
+        updateResult <-
+          if (passCheck) {
+            updateUser(user, newPassword).map(Right(_))
+          } else Left("Invalid password").pure[F]
+      } yield updateResult
+    }
+
+    users.find(email).flatMap {
+      case None => Right(None).pure[F]
+      case Some(user) =>
+        val NewPasswordInfo(oldPassword, newPassword) = newPasswordInfo
+        checkAndUpdate(user, oldPassword, newPassword)
+    }
+  }
 }
 
 object LiveAuth {
-  def apply[F[_]: MonadCancelThrow: Logger](users: Users[F], authenticator: Authenticator[F]) =
+  def apply[F[_]: Async: Logger](users: Users[F], authenticator: Authenticator[F]) =
     new LiveAuth[F](users, authenticator).pure[F]
 }

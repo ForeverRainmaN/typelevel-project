@@ -24,7 +24,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
       if (email === AdminEmail) IO.pure(Some(Admin))
       else IO.pure(None)
     override def create(user: User): IO[String]       = IO.pure(AdminEmail)
-    override def update(user: User): IO[Option[User]] = IO.pure(Some(Admin))
+    override def update(user: User): IO[Option[User]] = IO.pure(Some(user))
     override def delete(email: String): IO[Boolean]   = IO.pure(true)
   }
 
@@ -32,7 +32,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
     val key = HMACSHA256.unsafeGenerateKey
     val idStore: IdentityStore[IO, String, User] = (email: String) =>
       if (email === AdminEmail) OptionT.pure(Admin)
-      //   else if (email === RecruiterEmail) OptionT.pure(ValidUserRecruiter)
+      else if (email === RecruiterEmail) OptionT.pure(Recruiter)
       else OptionT.none[IO, User]
 
     JWTAuthenticator.unbacked.inBearerToken(
@@ -65,7 +65,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
     "login should return a token if the user exists and the password is correct" in {
       val program = for {
         auth       <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
-        maybeToken <- auth.login(AdminEmail, Admin.hashedPassword)
+        maybeToken <- auth.login(AdminEmail, AdminRawPassword)
       } yield maybeToken
 
       program.asserting(_ shouldBe defined)
@@ -142,12 +142,13 @@ class AuthSpec extends AllTestsSpec with UserFixture {
         auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
         result <- auth.changePassword(
           AdminEmail,
-          NewPasswordInfo(Admin.hashedPassword, "newAdminPassword")
+          NewPasswordInfo(AdminRawPassword, "newAdminPassword")
         )
-        isCorrectPassword <- result match
+        isCorrectPassword <- result match {
           case Right(Some(user)) =>
             BCrypt.checkpwBool[IO]("newAdminPassword", PasswordHash(user.hashedPassword))
           case _ => IO.pure(false)
+        }
       } yield isCorrectPassword
 
       program.asserting(_ shouldBe true)
