@@ -32,25 +32,24 @@ class LiveAuth[F[_]: Async: Logger] private (
       maybeValidatedUser <- maybeUser.filterA(user =>
         BCrypt.checkpwBool[F](password, PasswordHash[BCrypt](user.hashedPassword))
       )
-      maybeJWTToken <- maybeValidatedUser.traverse(user => authenticator.create(user.email))
-    } yield maybeJWTToken
+      maybeToken <- maybeValidatedUser.traverse(user => authenticator.create(user.email))
+    } yield maybeToken
   override def signUp(newUserInfo: NewUserInfo): F[Option[User]] =
-    users.find(newUserInfo.email).flatMap {
-      case Some(_) => None.pure[F]
-      case None =>
-        for {
-          hashedPassword <- BCrypt.hashpw[F](newUserInfo.password)
-          user <- User(
-            newUserInfo.email,
-            hashedPassword,
-            newUserInfo.firstName,
-            newUserInfo.lastName,
-            newUserInfo.company,
-            Role.RECRUITER
-          ).pure[F]
+    def createNewUser(password: String): F[Option[User]] = for {
+      hashedPw <- BCrypt.hashpw[F](password)
+      user <- User(
+        email = newUserInfo.email,
+        hashedPassword = hashedPw,
+        company = newUserInfo.company,
+        firstName = newUserInfo.firstName,
+        lastName = newUserInfo.lastName,
+        role = Role.RECRUITER
+      ).pure[F]
+      _ <- users.create(user)
+    } yield Some(user)
 
-          _ <- users.create(user)
-        } yield Some(user)
+    users.find(newUserInfo.email).flatMap { maybeUser =>
+      maybeUser.fold(createNewUser(newUserInfo.password))(_ => Option.empty[User].pure[F])
     }
   override def changePassword(
       email: String,
