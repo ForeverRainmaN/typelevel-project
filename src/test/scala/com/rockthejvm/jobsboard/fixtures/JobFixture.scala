@@ -7,12 +7,12 @@ import java.util.UUID
 
 trait JobFixture {
 
-  val NotFoundJobUuid = UUID.fromString("6ea79557-3112-4c84-a8f5-1d1e2c300948")
+  val notFoundJobUuid = UUID.fromString("6ea79557-3112-4c84-a8f5-1d1e2c300948")
 
-  val AwesomeJobUuid = UUID.fromString("843df718-ec6e-4d49-9289-f799c0f40064")
+  val awesomeJobUuid = UUID.fromString("843df718-ec6e-4d49-9289-f799c0f40064")
 
-  val AwesomeJob = Job(
-    AwesomeJobUuid,
+  val awesomeJob = Job(
+    awesomeJobUuid,
     1659186086L,
     "daniel@rockthejvm.com",
     active = true,
@@ -34,7 +34,7 @@ trait JobFixture {
     )
   )
 
-  val InvalidJob = Job(
+  val invalidJob = Job(
     null,
     42L,
     "nothing@gmail.com",
@@ -42,8 +42,8 @@ trait JobFixture {
     JobInfo.empty
   )
 
-  val UpdatedAwesomeJob = Job(
-    AwesomeJobUuid,
+  val updatedAwesomeJob = Job(
+    awesomeJobUuid,
     1659186086L,
     "daniel@rockthejvm.com",
     active = true,
@@ -65,7 +65,7 @@ trait JobFixture {
     )
   )
 
-  val RockTheJvmNewJob = JobInfo(
+  val rockTheJvmNewJob = JobInfo(
     "RockTheJvm",
     "Technical Author",
     "For the glory of the RockTheJvm!",
@@ -82,16 +82,16 @@ trait JobFixture {
     None
   )
 
-  val RockTheJvmJobWithNotFoundId = AwesomeJob.copy(id = NotFoundJobUuid)
+  val rockTheJvmJobWithNotFoundId = awesomeJob.copy(id = notFoundJobUuid)
 
-  val AnotherAwesomeJobUuid = UUID.fromString("19a941d0-aa19-477b-9ab0-a7033ae65c2b")
-  val AnotherAwesomeJob     = AwesomeJob.copy(id = AnotherAwesomeJobUuid)
+  val anotherAwesomeJobUuid = UUID.fromString("19a941d0-aa19-477b-9ab0-a7033ae65c2b")
+  val anotherAwesomeJob     = awesomeJob.copy(id = anotherAwesomeJobUuid)
 
-  val RockTheJvmAwesomeJob =
-    AwesomeJob.copy(jobInfo = AwesomeJob.jobInfo.copy(company = "RockTheJvm"))
+  val rockTheJvmAwesomeJob =
+    awesomeJob.copy(jobInfo = awesomeJob.jobInfo.copy(company = "RockTheJvm"))
 
-  val NewJobUuid = UUID.fromString("efcd2a64-4463-453a-ada8-b1bae1db4377")
-  val AwesomeNewJob = JobInfo(
+  val newJobUuid = UUID.fromString("efcd2a64-4463-453a-ada8-b1bae1db4377")
+  val awesomeNewJob = JobInfo(
     "Awesome Company",
     "Tech Lead",
     "An awesome job in Berlin",

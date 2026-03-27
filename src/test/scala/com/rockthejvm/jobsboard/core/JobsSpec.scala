@@ -21,7 +21,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
       withTransactor(config) { xa =>
         for {
           _      <- truncateTable(xa)("jobs")
-          result <- LiveJobs[IO](xa).flatMap(_.find(NotFoundJobUuid))
+          result <- LiveJobs[IO](xa).flatMap(_.find(notFoundJobUuid))
         } yield result
       }.asserting(_ shouldBe None)
     }
@@ -31,10 +31,10 @@ class JobsSpec extends AllTestsSpec with JobFixture {
         for {
           _    <- truncateTable(xa)("jobs")
           jobs <- LiveJobs[IO](xa)
-          id   <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
+          id   <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           job  <- jobs.find(id)
         } yield job
-      }.asserting(_.map(_.jobInfo) shouldBe Some(AwesomeJob.jobInfo))
+      }.asserting(_.map(_.jobInfo) shouldBe Some(awesomeJob.jobInfo))
     }
 
     "should retrieve all jobs" in {
@@ -42,12 +42,12 @@ class JobsSpec extends AllTestsSpec with JobFixture {
         for {
           _    <- truncateTable(xa)("jobs")
           jobs <- LiveJobs[IO](xa)
-          id   <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
+          id   <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           all  <- jobs.all()
         } yield (all, id)
       }.asserting { case (all, id) =>
         all.map(_.id) should contain(id)
-        all.head.jobInfo shouldBe AwesomeJob.jobInfo
+        all.head.jobInfo shouldBe awesomeJob.jobInfo
       }
     }
 
@@ -56,10 +56,10 @@ class JobsSpec extends AllTestsSpec with JobFixture {
         for {
           _        <- truncateTable(xa)("jobs")
           jobs     <- LiveJobs[IO](xa)
-          jobId    <- jobs.create("daniel@rockthejvm.com", RockTheJvmNewJob)
+          jobId    <- jobs.create("daniel@rockthejvm.com", rockTheJvmNewJob)
           maybeJob <- jobs.find(jobId)
         } yield maybeJob
-      }.asserting(_.map(_.jobInfo) shouldBe Some(RockTheJvmNewJob))
+      }.asserting(_.map(_.jobInfo) shouldBe Some(rockTheJvmNewJob))
     }
 
     "should return an updated job if it exists" in {
@@ -67,12 +67,12 @@ class JobsSpec extends AllTestsSpec with JobFixture {
         for {
           _               <- truncateTable(xa)("jobs")
           jobs            <- LiveJobs[IO](xa)
-          id              <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
-          maybeUpdatedJob <- jobs.update(id, UpdatedAwesomeJob.jobInfo)
+          id              <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
+          maybeUpdatedJob <- jobs.update(id, updatedAwesomeJob.jobInfo)
         } yield maybeUpdatedJob
       }.asserting { maybeJob =>
         maybeJob shouldBe defined
-        maybeJob.get.jobInfo shouldBe UpdatedAwesomeJob.jobInfo
+        maybeJob.get.jobInfo shouldBe updatedAwesomeJob.jobInfo
       }
     }
 
@@ -80,7 +80,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
       withTransactor(config) { xa =>
         for {
           _   <- truncateTable(xa)("jobs")
-          res <- LiveJobs[IO](xa).flatMap(_.update(NotFoundJobUuid, UpdatedAwesomeJob.jobInfo))
+          res <- LiveJobs[IO](xa).flatMap(_.update(notFoundJobUuid, updatedAwesomeJob.jobInfo))
         } yield res
       }.asserting(_ shouldBe None)
     }
@@ -90,7 +90,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
         for {
           _            <- truncateTable(xa)("jobs")
           jobs         <- LiveJobs[IO](xa)
-          id           <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
+          id           <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           deletedCount <- jobs.delete(id)
           countAfter <- sql"SELECT COUNT(*) FROM jobs WHERE id = $id".query[Int].unique.transact(xa)
         } yield (deletedCount, countAfter)
@@ -104,7 +104,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
       withTransactor(config) { xa =>
         for {
           _   <- truncateTable(xa)("jobs")
-          res <- LiveJobs[IO](xa).flatMap(_.delete(NotFoundJobUuid))
+          res <- LiveJobs[IO](xa).flatMap(_.delete(notFoundJobUuid))
         } yield res
       }.asserting(_ shouldBe 0)
     }
@@ -114,8 +114,8 @@ class JobsSpec extends AllTestsSpec with JobFixture {
         for {
           _    <- truncateTable(xa)("jobs")
           jobs <- LiveJobs[IO](xa)
-          _    <- jobs.create("remote@test.com", RockTheJvmNewJob.copy(remote = true))
-          _    <- jobs.create("office@test.com", AwesomeJob.jobInfo.copy(remote = false))
+          _    <- jobs.create("remote@test.com", rockTheJvmNewJob.copy(remote = true))
+          _    <- jobs.create("office@test.com", awesomeJob.jobInfo.copy(remote = false))
           filteredRemoteTrue  <- jobs.all(JobFilter(remote = true), Pagination.default)
           filteredRemoteFalse <- jobs.all(JobFilter(remote = false), Pagination.default)
         } yield (filteredRemoteTrue, filteredRemoteFalse)
@@ -132,12 +132,12 @@ class JobsSpec extends AllTestsSpec with JobFixture {
         for {
           _        <- truncateTable(xa)("jobs")
           jobs     <- LiveJobs[IO](xa)
-          _        <- jobs.create("daniel@rockthejvm.com", AwesomeJob.jobInfo)
+          _        <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           filtered <- jobs.all(JobFilter(tags = List("scala", "cats", "zio")), Pagination.default)
         } yield filtered
       }.flatMap { result =>
         IO(assert(result.nonEmpty)) *>
-          IO(assert(result.head.jobInfo == AwesomeJob.jobInfo))
+          IO(assert(result.head.jobInfo == awesomeJob.jobInfo))
       }
     }
   }

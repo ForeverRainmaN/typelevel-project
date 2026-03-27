@@ -29,26 +29,26 @@ class JobRoutesSpec
 
   val jobs: Jobs[IO] = new Jobs[IO] {
     override def create(ownerEmail: String, jobInfo: JobInfo): IO[UUID] =
-      IO.pure(NewJobUuid)
+      IO.pure(newJobUuid)
 
     override def find(id: UUID): IO[Option[Job]] =
-      if (id == AwesomeJobUuid) IO.pure(Some(AwesomeJob))
+      if (id == awesomeJobUuid) IO.pure(Some(awesomeJob))
       else IO.pure(None)
 
     override def update(id: UUID, jbInfo: JobInfo): IO[Option[Job]] =
-      if (id == AwesomeJobUuid) IO.pure(Some(UpdatedAwesomeJob))
+      if (id == awesomeJobUuid) IO.pure(Some(updatedAwesomeJob))
       else IO.pure(None)
 
     override def delete(id: UUID): IO[Int] =
-      if (id == AwesomeJobUuid) IO.pure(1)
+      if (id == awesomeJobUuid) IO.pure(1)
       else IO.pure(0)
 
     override def all(): IO[List[Job]] =
-      IO.pure(List(AwesomeJob))
+      IO.pure(List(awesomeJob))
 
     override def all(filter: JobFilter, pagination: Pagination): IO[List[Job]] =
       if (filter.remote) IO.pure(List())
-      else IO.pure(List(AwesomeJob))
+      else IO.pure(List(awesomeJob))
   }
 
   given logger: Logger[IO]      = Slf4jLogger.getLogger[IO]
@@ -63,7 +63,7 @@ class JobRoutesSpec
         retrieved <- response.as[Job]
       } yield {
         response.status shouldBe Status.Ok
-        retrieved shouldBe AwesomeJob
+        retrieved shouldBe awesomeJob
       }
     }
 
@@ -77,7 +77,7 @@ class JobRoutesSpec
         retrieved <- response.as[List[Job]]
       } yield {
         response.status shouldBe Status.Ok
-        retrieved shouldBe List(AwesomeJob)
+        retrieved shouldBe List(awesomeJob)
       }
     }
 
@@ -91,7 +91,7 @@ class JobRoutesSpec
         retrieved <- response.as[List[Job]]
       } yield {
         response.status shouldBe Status.Ok
-        retrieved shouldBe List(AwesomeJob)
+        retrieved shouldBe List(awesomeJob)
       }
     }
 
@@ -115,12 +115,12 @@ class JobRoutesSpec
           Request(
             method = Method.POST,
             uri = uri"/jobs/create"
-          ).withEntity(AwesomeJob.jobInfo)
+          ).withEntity(awesomeJob.jobInfo)
         )
         retrieved <- response.as[UUID]
       } yield {
         response.status shouldBe Status.Created
-        retrieved shouldBe NewJobUuid
+        retrieved shouldBe newJobUuid
       }
     }
 
@@ -130,13 +130,13 @@ class JobRoutesSpec
           Request(
             method = Method.PUT,
             uri = uri"/jobs/843df718-ec6e-4d49-9289-f799c0f40064"
-          ).withEntity(UpdatedAwesomeJob.jobInfo)
+          ).withEntity(updatedAwesomeJob.jobInfo)
         )
         responseInvalid <- jobRoutes.orNotFound.run(
           Request(
             method = Method.PUT,
             uri = uri"/jobs/843df718-ec6e-4d49-9289-000000000000"
-          ).withEntity(UpdatedAwesomeJob.jobInfo)
+          ).withEntity(updatedAwesomeJob.jobInfo)
         )
       } yield {
         responseOk.status shouldBe Status.Ok

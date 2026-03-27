@@ -21,9 +21,9 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
   private val mockedUsers: Users[IO] = new Users[IO] {
     override def find(email: String): IO[Option[User]] =
-      if (email === AdminEmail) IO.pure(Some(Admin))
+      if (email === adminEmail) IO.pure(Some(admin))
       else IO.pure(None)
-    override def create(user: User): IO[String]       = IO.pure(AdminEmail)
+    override def create(user: User): IO[String]       = IO.pure(adminEmail)
     override def update(user: User): IO[Option[User]] = IO.pure(Some(user))
     override def delete(email: String): IO[Boolean]   = IO.pure(true)
   }
@@ -31,8 +31,8 @@ class AuthSpec extends AllTestsSpec with UserFixture {
   val mockedAuthenticator: Authenticator[IO] = {
     val key = HMACSHA256.unsafeGenerateKey
     val idStore: IdentityStore[IO, String, User] = (email: String) =>
-      if (email === AdminEmail) OptionT.pure(Admin)
-      else if (email === RecruiterEmail) OptionT.pure(Recruiter)
+      if (email === adminEmail) OptionT.pure(admin)
+      else if (email === recruiterEmail) OptionT.pure(recruiter)
       else OptionT.none[IO, User]
 
     JWTAuthenticator.unbacked.inBearerToken(
@@ -56,7 +56,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
     "login should return NONE if the user exists but the password is wrong" in {
       val program = for {
         auth       <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
-        maybeToken <- auth.login(AdminEmail, "wrongpassword")
+        maybeToken <- auth.login(adminEmail, "wrongpassword")
       } yield maybeToken
 
       program.asserting(_ shouldBe None)
@@ -65,7 +65,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
     "login should return a token if the user exists and the password is correct" in {
       val program = for {
         auth       <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
-        maybeToken <- auth.login(AdminEmail, AdminRawPassword)
+        maybeToken <- auth.login(adminEmail, adminRawPassword)
       } yield maybeToken
 
       program.asserting(_ shouldBe defined)
@@ -76,7 +76,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
         auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
         maybeUser <- auth.signUp(
           NewUserInfo(
-            AdminEmail,
+            adminEmail,
             "somePassword",
             Some("someFirstName"),
             Some("someLastName"),
@@ -129,7 +129,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
       val program = for {
         auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
         result <- auth.changePassword(
-          AdminEmail,
+          adminEmail,
           NewPasswordInfo("oldPw", "newPw")
         )
       } yield result
@@ -141,8 +141,8 @@ class AuthSpec extends AllTestsSpec with UserFixture {
       val program = for {
         auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
         result <- auth.changePassword(
-          AdminEmail,
-          NewPasswordInfo(AdminRawPassword, "newAdminPassword")
+          adminEmail,
+          NewPasswordInfo(adminRawPassword, "newAdminPassword")
         )
         isCorrectPassword <- result match {
           case Right(Some(user)) =>
