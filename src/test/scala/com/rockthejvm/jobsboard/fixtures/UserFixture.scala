@@ -57,21 +57,19 @@ trait UserFixture {
     role = Role.ADMIN
   )
 
-  val newUserAdmin = User(
+  val newUserAdmin = NewUserInfo(
     adminEmail,
-    adminHashedPassword,
+    adminRawPassword,
     Some("admin1"),
     Some("admin2"),
-    Some("admincompany"),
-    Role.ADMIN
+    Some("admincompany")
   )
 
-  val newUserRecruiter = User(
+  val newUserRecruiter = NewUserInfo(
     recruiterEmail,
-    recruiterHashedPassword,
+    recruiterRawPassword,
     Some("recruiter1"),
     Some("recruiter2"),
-    Some("recruitercompany"),
-    Role.RECRUITER
+    Some("recruitercompany")
   )
 }

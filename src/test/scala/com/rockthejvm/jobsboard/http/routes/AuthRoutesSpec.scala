@@ -53,16 +53,27 @@ class AuthRoutesSpec
   given logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   val mockedAuth: Auth[IO] = new Auth[IO] {
-
-    override def login(email: String, password: String): IO[Option[JWTToken]] = ???
-
-    override def signUp(newUserInfo: NewUserInfo): IO[Option[User]] = ???
-
+    override def login(email: String, password: String): IO[Option[JWTToken]] =
+      if (email == adminEmail && password == adminRawPassword)
+        mockedAuthenticator.create(adminEmail).map(Some(_))
+      else IO.pure(None)
+    override def signUp(newUserInfo: NewUserInfo): IO[Option[User]] =
+      if (newUserInfo.email == recruiterEmail)
+        IO.pure(Some(recruiter))
+      else
+        IO.pure(None)
     override def changePassword(
         email: String,
         newPasswordInfo: NewPasswordInfo
-    ): IO[Either[String, Option[User]]] = ???
-
+    ): IO[Either[String, Option[User]]] =
+      if (email == adminEmail)
+        if (newPasswordInfo.oldPassword == adminRawPassword)
+          IO.pure(Right(Some(admin)))
+        else
+          IO.pure(Left("Invalid Password"))
+      else
+        IO.pure(Right(None))
+    def authenticator: Authenticator[IO] = mockedAuthenticator
   }
 
   extension (r: Request[IO]) {
@@ -146,11 +157,11 @@ class AuthRoutesSpec
 
     "should return a 404-Not found if changing password for a user that doesn't exist" in {
       for {
-        jwtToken <- mockedAuthenticator.create(adminEmail)
+        jwtToken <- mockedAuthenticator.create(recruiterEmail)
         response <- authRoutes.orNotFound.run(
           Request(method = Method.PUT, uri = uri"/auth/users/password")
             .withBearerToken(jwtToken)
-            .withEntity(NewPasswordInfo(adminRawPassword, "newpassword"))
+            .withEntity(NewPasswordInfo("somepassword", "newpassword"))
         )
       } yield {
         response.status shouldBe Status.NotFound
@@ -190,9 +201,8 @@ class AuthRoutesSpec
             .withEntity(NewPasswordInfo(adminRawPassword, "newpassword"))
         )
       } yield {
-        response.status shouldBe Status.Forbidden
+        response.status shouldBe Status.Ok
       }
     }
-
   }
 }

@@ -11,8 +11,8 @@ import com.rockthejvm.jobsboard.http.validation.syntax.*
 import com.rockthejvm.jobsboard.logging.syntax.*
 import io.circe.generic.auto.*
 import io.circe.syntax.*
-import org.http4s.HttpRoutes
 import org.http4s.circe.CirceEntityCodec.*
+import org.http4s.HttpRoutes
 import org.http4s.dsl.Http4sDsl
 import org.http4s.dsl.impl.OptionalQueryParamDecoderMatcher
 import org.http4s.server.Router
