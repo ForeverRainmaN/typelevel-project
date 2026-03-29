@@ -29,46 +29,48 @@ class AuthRoutes[F[_]: Concurrent: Logger] private (auth: Auth[F]) extends HttpV
     SecuredRequestHandler(authenticator)
 
   private val loginRoute: HttpRoutes[F] = HttpRoutes.of[F] { case req @ POST -> Root / "login" =>
-    val maybeJwtToken = for {
-      loginInfo  <- req.as[LoginInfo]
-      maybeToken <- auth.login(loginInfo.email, loginInfo.password)
-      _          <- Logger[F].info(s"User logging in: ${loginInfo.email}")
-    } yield maybeToken
+    req.validate[LoginInfo] { loginInfo =>
+      val maybeJwtToken = for {
+        maybeToken <- auth.login(loginInfo.email, loginInfo.password)
+        _          <- Logger[F].info(s"User logging in: ${loginInfo.email}")
+      } yield maybeToken
 
-    maybeJwtToken.map {
-      case Some(token) => authenticator.embed(Response(Status.Ok), token)
-      case None        => Response(Status.Unauthorized)
+      maybeJwtToken.map {
+        case Some(token) => authenticator.embed(Response(Status.Ok), token)
+        case None        => Response(Status.Unauthorized)
+      }
     }
   }
 
   private val createUserRoute: HttpRoutes[F] = HttpRoutes.of[F] {
     case req @ POST -> Root / "users" =>
-      for {
-        newUserInfo  <- req.as[NewUserInfo]
-        maybeNewUser <- auth.signUp(newUserInfo)
-        response <- maybeNewUser match {
-          case Some(user) => Created(user.email)
-          case None       => BadRequest(s"User with email ${newUserInfo.email} already exists")
-        }
-      } yield response
+      req.validate[NewUserInfo] { newUserInfo =>
+        for {
+          maybeNewUser <- auth.signUp(newUserInfo)
+          response <- maybeNewUser match {
+            case Some(user) => Created(user.email)
+            case None       => BadRequest(s"User with email ${newUserInfo.email} already exists")
+          }
+        } yield response
+      }
   }
 
   private val changePasswordRoute: AuthRoute[F] = {
     case req @ PUT -> Root / "users" / "password" asAuthed user =>
-      for {
-        newPasswordInfo  <- req.request.as[NewPasswordInfo]
-        maybeUserOrError <- auth.changePassword(user.email, newPasswordInfo)
-        response <- maybeUserOrError match
-          case Left(_)        => Forbidden()
-          case Right(Some(_)) => Ok()
-          case Right(None)    => NotFound(FailureResponse(s"User ${user.email} not found"))
+      req.request.validate[NewPasswordInfo] { newPasswordInfo =>
+        for {
+          maybeUserOrError <- auth.changePassword(user.email, newPasswordInfo)
+          response <- maybeUserOrError match
+            case Left(_)        => Forbidden()
+            case Right(Some(_)) => Ok()
+            case Right(None)    => NotFound(FailureResponse(s"User ${user.email} not found"))
 
-      } yield response
+        } yield response
+      }
   }
 
   private val logoutRoute: AuthRoute[F] = { case req @ POST -> Root / "logout" asAuthed _ =>
     val token = req.authenticator
-
     for {
       _        <- authenticator.discard(token)
       response <- Ok()
