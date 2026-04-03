@@ -25,6 +25,7 @@ import tsec.authentication.asAuthed
 class AuthRoutes[F[_]: Concurrent: Logger] private (auth: Auth[F]) extends HttpValidationDSL[F] {
 
   private val authenticator = auth.authenticator
+
   private val securedHandler: SecuredRequestHandler[F, String, User, JWTToken] =
     SecuredRequestHandler(authenticator)
 
@@ -77,9 +78,21 @@ class AuthRoutes[F[_]: Concurrent: Logger] private (auth: Auth[F]) extends HttpV
     } yield response
   }
 
+  private val deleteUserRoute: AuthRoute[F] = {
+    case req @ DELETE -> Root / "users" / email asAuthed user =>
+      auth.delete(email).flatMap {
+        case true  => Ok()
+        case false => NotFound()
+      }
+  }
+
   val unauthedRoutes = loginRoute <+> createUserRoute
   val authedRoutes =
-    securedHandler.liftService(TSecAuthService(changePasswordRoute.orElse(logoutRoute)))
+    securedHandler.liftService(
+      changePasswordRoute.restrictedTo(allRoles) |+|
+        logoutRoute.restrictedTo(allRoles) |+|
+        deleteUserRoute.restrictedTo(adminOnly)
+    )
 
   val routes = Router(
     "/auth" -> (unauthedRoutes <+> authedRoutes)

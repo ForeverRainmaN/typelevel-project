@@ -73,7 +73,9 @@ class AuthRoutesSpec
           IO.pure(Left("Invalid Password"))
       else
         IO.pure(Right(None))
-    def authenticator: Authenticator[IO] = mockedAuthenticator
+
+    override def delete(email: String): IO[Boolean] = IO.pure(true)
+    def authenticator: Authenticator[IO]            = mockedAuthenticator
   }
 
   extension (r: Request[IO]) {
@@ -203,6 +205,30 @@ class AuthRoutesSpec
       } yield {
         response.status shouldBe Status.Ok
       }
+    }
+  }
+
+  "should return a 401-Unauthorized if a non-admin tries to delete a user" in {
+    for {
+      jwtToken <- mockedAuthenticator.create(recruiterEmail)
+      response <- authRoutes.orNotFound.run(
+        Request(method = Method.DELETE, uri = uri"/auth/users/admin@something.com")
+          .withBearerToken(jwtToken)
+      )
+    } yield {
+      response.status shouldBe Status.Unauthorized
+    }
+  }
+
+  "should return a 200-Ok if a admin tries to delete a user" in {
+    for {
+      jwtToken <- mockedAuthenticator.create(adminEmail)
+      response <- authRoutes.orNotFound.run(
+        Request(method = Method.DELETE, uri = uri"/auth/users/admin@something.com")
+          .withBearerToken(jwtToken)
+      )
+    } yield {
+      response.status shouldBe Status.Ok
     }
   }
 }
