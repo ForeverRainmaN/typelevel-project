@@ -2,6 +2,7 @@ package com.rockthejvm.jobsboard.modules
 
 import cats.effect.*
 import cats.implicits.*
+import com.rockthejvm.jobsboard.http.routes.AuthRoutes
 import com.rockthejvm.jobsboard.http.routes.HealthRoutes
 import com.rockthejvm.jobsboard.http.routes.JobRoutes
 import org.http4s.HttpRoutes
@@ -11,6 +12,7 @@ import org.typelevel.log4cats.Logger
 class HttpApi[F[_]: Concurrent: Logger] private (core: Core[F]) {
   private val healthRoutes = HealthRoutes[F].routes
   private val jobRoutes    = JobRoutes[F](core.jobs).routes
+  private val authRoutes   = AuthRoutes[F](core.auth).routes
 
   val endpoints: HttpRoutes[F] = Router(
     "/api" -> (healthRoutes <+> jobRoutes)

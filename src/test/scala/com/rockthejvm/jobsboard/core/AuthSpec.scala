@@ -4,6 +4,7 @@ import cats.data.OptionT
 import cats.effect.*
 import com.rockthejvm.jobsboard.algebra.LiveAuth
 import com.rockthejvm.jobsboard.algebra.Users
+import com.rockthejvm.jobsboard.config.SecurityConfig
 import com.rockthejvm.jobsboard.domain.Role
 import com.rockthejvm.jobsboard.domain.auth.*
 import com.rockthejvm.jobsboard.domain.security.*
@@ -28,25 +29,12 @@ class AuthSpec extends AllTestsSpec with UserFixture {
     override def delete(email: String): IO[Boolean]   = IO.pure(true)
   }
 
-  val mockedAuthenticator: Authenticator[IO] = {
-    val key = HMACSHA256.unsafeGenerateKey
-    val idStore: IdentityStore[IO, String, User] = (email: String) =>
-      if (email === adminEmail) OptionT.pure(admin)
-      else if (email === recruiterEmail) OptionT.pure(recruiter)
-      else OptionT.none[IO, User]
-
-    JWTAuthenticator.unbacked.inBearerToken(
-      1.day,   // expiration of tokens
-      None,    // max idle time (optional)
-      idStore, // identity store
-      key      // hash key
-    )
-  }
+  private val mockedConfig = SecurityConfig("secret", 1.day)
 
   "Auth 'algebra'" - {
     "login should return NONE if the user does not exist" in {
       val program = for {
-        auth       <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth       <- LiveAuth[IO](mockedUsers)(mockedConfig)
         maybeToken <- auth.login("user@somewhere.com", "password")
       } yield maybeToken
 
@@ -55,7 +43,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "login should return NONE if the user exists but the password is wrong" in {
       val program = for {
-        auth       <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth       <- LiveAuth[IO](mockedUsers)(mockedConfig)
         maybeToken <- auth.login(adminEmail, "wrongpassword")
       } yield maybeToken
 
@@ -64,7 +52,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "login should return a token if the user exists and the password is correct" in {
       val program = for {
-        auth       <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth       <- LiveAuth[IO](mockedUsers)(mockedConfig)
         maybeToken <- auth.login(adminEmail, adminRawPassword)
       } yield maybeToken
 
@@ -73,7 +61,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "signing up should not create a user with an existing email" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
         maybeUser <- auth.signUp(
           NewUserInfo(
             adminEmail,
@@ -90,7 +78,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "signing up should create a new user" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
         maybeUser <- auth.signUp(
           NewUserInfo(
             "newEmail@somewhere.com",
@@ -115,7 +103,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "change password should return Right(None) if the user doesn't exist" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
         result <- auth.changePassword(
           "alice@somewhere.com",
           NewPasswordInfo("oldPassword", "newPassword")
@@ -127,7 +115,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "change password should return Left with an error if the password is incorrect" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
         result <- auth.changePassword(
           adminEmail,
           NewPasswordInfo("oldPw", "newPw")
@@ -139,7 +127,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "change password should change the password if all details are correct" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers, mockedAuthenticator)
+        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
         result <- auth.changePassword(
           adminEmail,
           NewPasswordInfo(adminRawPassword, "newAdminPassword")

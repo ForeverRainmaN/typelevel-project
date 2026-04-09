@@ -1,7 +1,9 @@
 package com.rockthejvm.jobsboard.algebra
 
+import cats.data.OptionT
 import cats.effect.*
 import cats.implicits.*
+import com.rockthejvm.jobsboard.config.SecurityConfig
 import com.rockthejvm.jobsboard.domain.Role
 import com.rockthejvm.jobsboard.domain.auth.*
 import com.rockthejvm.jobsboard.domain.security.*
@@ -10,8 +12,15 @@ import doobie.free.resultset
 import org.checkerframework.checker.units.qual.m
 import org.typelevel.log4cats.Logger
 import tsec.authentication.AugmentedJWT
+import tsec.authentication.BackingStore
+import tsec.authentication.IdentityStore
+import tsec.authentication.JWTAuthenticator
+import tsec.common.SecureRandomId
+import tsec.mac.jca.HMACSHA256
 import tsec.passwordhashers.PasswordHash
 import tsec.passwordhashers.jca.BCrypt
+
+import scala.concurrent.duration.*
 
 trait Auth[F[_]: Async: Logger] {
   def login(email: String, password: String): F[Option[JWTToken]]
@@ -87,12 +96,44 @@ class LiveAuth[F[_]: Async: Logger] private (
         checkAndUpdate(user, oldPassword, newPassword)
     }
   }
-
   override def delete(email: String): F[Boolean] =
     users.delete(email)
 }
 
 object LiveAuth {
-  def apply[F[_]: Async: Logger](users: Users[F], authenticator: Authenticator[F]) =
-    new LiveAuth[F](users, authenticator).pure[F]
+  def apply[F[_]: Async: Logger](
+      users: Users[F]
+  )(securityConfig: SecurityConfig): F[LiveAuth[F]] = {
+    // 1. Identity store
+    val idStore: IdentityStore[F, String, User] = (email: String) => OptionT(users.find(email))
+    // 2. backing store for JWT tokens: BackingStore[F, id, JwtToken]
+    val tokenStoreF = Ref.of[F, Map[SecureRandomId, JWTToken]](Map.empty).map { ref =>
+      new BackingStore[F, SecureRandomId, JWTToken] {
+        override def get(id: SecureRandomId): OptionT[F, JWTToken] = OptionT(ref.get.map(_.get(id)))
+        override def put(elem: JWTToken): F[JWTToken] =
+          ref.modify(store => (store + (elem.id -> elem), elem))
+        override def update(v: JWTToken): F[JWTToken] =
+          put(v)
+        override def delete(id: SecureRandomId): F[Unit] =
+          ref.modify(store => (store - id, ()))
+      }
+    }
+
+    // 3. hashing key
+    val keyF =
+      HMACSHA256.buildKey[F](securityConfig.secret.getBytes("UTF-8")) // TODO move to config
+
+    for {
+      key        <- keyF
+      tokenStore <- tokenStoreF
+      // 4. authenticator
+      authenticator = JWTAuthenticator.backed.inBearerToken(
+        expiryDuration = securityConfig.jwtExpiryDuration, // expiration of tokens
+        maxIdle = None,                                    // max idle time (optional)
+        identityStore = idStore,                           // identity store
+        tokenStore = tokenStore,                           // tokenStore
+        signingKey = key                                   // hash key
+      )
+    } yield new LiveAuth[F](users, authenticator)
+  }
 }
