@@ -1,6 +1,7 @@
 services:
   db:
     image: postgres
+    container_name: typelevel-project-db-1
     restart: always
     volumes:
       - "./sql:/docker-entrypoint-initdb.d"

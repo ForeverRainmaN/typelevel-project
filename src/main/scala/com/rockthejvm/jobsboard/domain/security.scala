@@ -11,14 +11,16 @@ import tsec.authentication.SecuredRequest
 import tsec.authentication.TSecAuthService
 import tsec.authorization.AuthorizationInfo
 import tsec.authorization.BasicRBAC
+import tsec.authentication.SecuredRequestHandler
 import tsec.mac.jca.HMACSHA256
 
 object security {
-  type Crypto              = HMACSHA256
-  type JWTToken            = AugmentedJWT[HMACSHA256, String]
-  type Authenticator[F[_]] = JWTAuthenticator[F, String, User, Crypto]
-  type AuthRoute[F[_]]     = PartialFunction[SecuredRequest[F, User, JWTToken], F[Response[F]]]
-  type AuthRBAC[F[_]]      = BasicRBAC[F, Role, User, JWTToken]
+  type Crypto               = HMACSHA256
+  type JWTToken             = AugmentedJWT[HMACSHA256, String]
+  type Authenticator[F[_]]  = JWTAuthenticator[F, String, User, Crypto]
+  type AuthRoute[F[_]]      = PartialFunction[SecuredRequest[F, User, JWTToken], F[Response[F]]]
+  type AuthRBAC[F[_]]       = BasicRBAC[F, Role, User, JWTToken]
+  type SecuredHandler[F[_]] = SecuredRequestHandler[F, String, User, JWTToken]
 
   // Role based access control
   // BasicRBAC[F, Role, User, JWTToken]

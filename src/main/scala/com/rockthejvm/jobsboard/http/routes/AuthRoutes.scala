@@ -5,8 +5,7 @@ import cats.implicits.*
 import com.rockthejvm.jobsboard.algebra.*
 import com.rockthejvm.jobsboard.domain.auth.*
 import com.rockthejvm.jobsboard.domain.security.*
-import com.rockthejvm.jobsboard.domain.user.NewUserInfo
-import com.rockthejvm.jobsboard.domain.user.User
+import com.rockthejvm.jobsboard.domain.user.*
 import com.rockthejvm.jobsboard.http.responses.FailureResponse
 import com.rockthejvm.jobsboard.http.validation.syntax.*
 import io.circe.generic.auto.*
@@ -21,6 +20,8 @@ import org.typelevel.log4cats.Logger
 import tsec.authentication.SecuredRequestHandler
 import tsec.authentication.TSecAuthService
 import tsec.authentication.asAuthed
+
+import scala.language.implicitConversions
 
 class AuthRoutes[F[_]: Concurrent: Logger] private (auth: Auth[F]) extends HttpValidationDSL[F] {
 

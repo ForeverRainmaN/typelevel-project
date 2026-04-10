@@ -6,7 +6,9 @@ import cats.implicits.*
 import com.rockthejvm.jobsboard.algebra.*
 import com.rockthejvm.jobsboard.domain.Job.*
 import com.rockthejvm.jobsboard.domain.pagination.*
+import com.rockthejvm.jobsboard.domain.security.*
 import com.rockthejvm.jobsboard.fixtures.JobFixture
+import com.rockthejvm.jobsboard.fixtures.SecuredRouteFixture
 import io.circe.generic.auto.*
 import io.circe.syntax.*
 import org.http4s.*
@@ -17,6 +19,7 @@ import org.scalatest.freespec.AsyncFreeSpec
 import org.scalatest.matchers.should.Matchers
 import org.typelevel.log4cats.Logger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import com.rockthejvm.jobsboard.logging.syntax.*
 
 import java.util.UUID
 
@@ -25,6 +28,7 @@ class JobRoutesSpec
     with AsyncIOSpec
     with Matchers
     with Http4sDsl[IO]
+    with SecuredRouteFixture
     with JobFixture {
 
   val jobs: Jobs[IO] = new Jobs[IO] {
@@ -52,7 +56,7 @@ class JobRoutesSpec
   }
 
   given logger: Logger[IO]      = Slf4jLogger.getLogger[IO]
-  val jobRoutes: HttpRoutes[IO] = JobRoutes[IO](jobs).routes
+  val jobRoutes: HttpRoutes[IO] = JobRoutes[IO](jobs, mockedAuthenticator).routes
 
   "JobRoutes" - {
     "should return a job with a given id" in {
@@ -111,12 +115,15 @@ class JobRoutesSpec
 
     "should create a new job" in {
       for {
-        response <- jobRoutes.orNotFound.run(
-          Request(
-            method = Method.POST,
-            uri = uri"/jobs/create"
-          ).withEntity(awesomeJob.jobInfo)
-        )
+        jwtToken <- mockedAuthenticator.create(adminEmail)
+        response <- jobRoutes.orNotFound
+          .run(
+            Request(
+              method = Method.POST,
+              uri = uri"/jobs/create"
+            ).withEntity(awesomeJob.jobInfo)
+              .withBearerToken(jwtToken)
+          )
         retrieved <- response.as[UUID]
       } yield {
         response.status shouldBe Status.Created
@@ -126,17 +133,18 @@ class JobRoutesSpec
 
     "should only update a job that exists" in {
       for {
+        jwtToken <- mockedAuthenticator.create(adminEmail)
         responseOk <- jobRoutes.orNotFound.run(
           Request(
             method = Method.PUT,
             uri = uri"/jobs/843df718-ec6e-4d49-9289-f799c0f40064"
-          ).withEntity(updatedAwesomeJob.jobInfo)
+          ).withEntity(updatedAwesomeJob.jobInfo).withBearerToken(jwtToken)
         )
         responseInvalid <- jobRoutes.orNotFound.run(
           Request(
             method = Method.PUT,
             uri = uri"/jobs/843df718-ec6e-4d49-9289-000000000000"
-          ).withEntity(updatedAwesomeJob.jobInfo)
+          ).withEntity(updatedAwesomeJob.jobInfo).withBearerToken(jwtToken)
         )
       } yield {
         responseOk.status shouldBe Status.Ok
@@ -145,19 +153,34 @@ class JobRoutesSpec
     }
   }
 
+  "should forbid the update of a job that the JWT token doesn't 'own'" in {
+    for {
+      jwtToken <- mockedAuthenticator.create("somebody@gmail.com")
+      responseOk <- jobRoutes.orNotFound.run(
+        Request(
+          method = Method.PUT,
+          uri = uri"/jobs/843df718-ec6e-4d49-9289-f799c0f40064"
+        ).withEntity(updatedAwesomeJob.jobInfo).withBearerToken(jwtToken)
+      )
+    } yield {
+      responseOk.status shouldBe Status.Unauthorized
+    }
+  }
+
   "should only delete a job that exists" in {
     for {
+      jwtToken <- mockedAuthenticator.create(adminEmail)
       responseOk <- jobRoutes.orNotFound.run(
         Request(
           method = Method.DELETE,
           uri = uri"/jobs/843df718-ec6e-4d49-9289-f799c0f40064"
-        )
+        ).withBearerToken(jwtToken)
       )
       responseInvalid <- jobRoutes.orNotFound.run(
         Request(
           method = Method.DELETE,
           uri = uri"/jobs/843df718-ec6e-4d49-9289-000000000000"
-        )
+        ).withBearerToken(jwtToken)
       )
     } yield {
       responseOk.status shouldBe Status.Ok

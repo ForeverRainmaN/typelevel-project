@@ -5,6 +5,7 @@ import doobie.postgres.implicits.*
 import doobie.util.meta.Meta
 import tsec.authorization.AuthGroup
 import tsec.authorization.SimpleAuthEnum
+import com.rockthejvm.jobsboard.domain.Job.*
 
 enum Role {
   case ADMIN, RECRUITER
@@ -27,7 +28,11 @@ object user {
       lastName: Option[String],
       company: Option[String],
       role: Role
-  )
+  ) {
+    def owns(job: Job): Boolean = email == job.ownerEmail
+    def isAdmin: Boolean        = role == Role.ADMIN
+    def isRecruiter: Boolean    = role == Role.RECRUITER
+  }
 
   final case class NewUserInfo(
       email: String,

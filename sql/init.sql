@@ -1,4 +1,4 @@
-СREATE DATABASE board;
+CREATE DATABASE board;
 \c board;
 
 DO $$ BEGIN
