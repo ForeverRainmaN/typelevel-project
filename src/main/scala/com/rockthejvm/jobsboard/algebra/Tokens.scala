@@ -66,7 +66,7 @@ class LiveTokens[F[_]: MonadCancelThrow: Logger](users: Users[F])(
     for {
       token <- randomToken(8)
       _ <- sql"""
-        UPDATE recoverytokens (email, token, expiration)
+        UPDATE recoverytokens
         SET token=$token, expiration=${System.currentTimeMillis() + tokenDuration}
         WHERE email=$email
         """.update.run.transact(xa)
