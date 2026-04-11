@@ -34,7 +34,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
   "Auth 'algebra'" - {
     "login should return NONE if the user does not exist" in {
       val program = for {
-        auth       <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth       <- LiveAuth[IO](mockedUsers)
         maybeToken <- auth.login("user@somewhere.com", "password")
       } yield maybeToken
 
@@ -43,7 +43,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "login should return NONE if the user exists but the password is wrong" in {
       val program = for {
-        auth       <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth       <- LiveAuth[IO](mockedUsers)
         maybeToken <- auth.login(adminEmail, "wrongpassword")
       } yield maybeToken
 
@@ -52,7 +52,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "login should return a token if the user exists and the password is correct" in {
       val program = for {
-        auth       <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth       <- LiveAuth[IO](mockedUsers)
         maybeToken <- auth.login(adminEmail, adminRawPassword)
       } yield maybeToken
 
@@ -61,7 +61,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "signing up should not create a user with an existing email" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth <- LiveAuth[IO](mockedUsers)
         maybeUser <- auth.signUp(
           NewUserInfo(
             adminEmail,
@@ -78,7 +78,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "signing up should create a new user" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth <- LiveAuth[IO](mockedUsers)
         maybeUser <- auth.signUp(
           NewUserInfo(
             "newEmail@somewhere.com",
@@ -103,7 +103,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "change password should return Right(None) if the user doesn't exist" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth <- LiveAuth[IO](mockedUsers)
         result <- auth.changePassword(
           "alice@somewhere.com",
           NewPasswordInfo("oldPassword", "newPassword")
@@ -115,7 +115,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "change password should return Left with an error if the password is incorrect" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth <- LiveAuth[IO](mockedUsers)
         result <- auth.changePassword(
           adminEmail,
           NewPasswordInfo("oldPw", "newPw")
@@ -127,7 +127,7 @@ class AuthSpec extends AllTestsSpec with UserFixture {
 
     "change password should change the password if all details are correct" in {
       val program = for {
-        auth <- LiveAuth[IO](mockedUsers)(mockedConfig)
+        auth <- LiveAuth[IO](mockedUsers)
         result <- auth.changePassword(
           adminEmail,
           NewPasswordInfo(adminRawPassword, "newAdminPassword")

@@ -22,7 +22,7 @@ object Application extends IOApp.Simple {
         val appResource = for {
           xa      <- Database.makePostgresResource[IO](postgresConfig)
           core    <- Core[IO](xa)(securityConfig)
-          httpApi <- HttpApi[IO](core)
+          httpApi <- HttpApi[IO](core)(securityConfig)
           server <- EmberServerBuilder
             .default[IO]
             .withHost(emberConfig.host)

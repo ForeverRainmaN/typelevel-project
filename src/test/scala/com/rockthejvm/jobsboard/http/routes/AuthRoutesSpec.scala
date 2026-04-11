@@ -40,9 +40,9 @@ class AuthRoutesSpec
   given logger: Logger[IO] = Slf4jLogger.getLogger[IO]
 
   val mockedAuth: Auth[IO] = new Auth[IO] {
-    override def login(email: String, password: String): IO[Option[JWTToken]] =
+    override def login(email: String, password: String): IO[Option[User]] =
       if (email == adminEmail && password == adminRawPassword)
-        mockedAuthenticator.create(adminEmail).map(Some(_))
+        IO(Some(admin))
       else IO.pure(None)
     override def signUp(newUserInfo: NewUserInfo): IO[Option[User]] =
       if (newUserInfo.email == recruiterEmail)
@@ -62,10 +62,9 @@ class AuthRoutesSpec
         IO.pure(Right(None))
 
     override def delete(email: String): IO[Boolean] = IO.pure(true)
-    def authenticator: Authenticator[IO]            = mockedAuthenticator
   }
 
-  val authRoutes: HttpRoutes[IO] = AuthRoutes[IO](mockedAuth).routes
+  val authRoutes: HttpRoutes[IO] = AuthRoutes[IO](mockedAuth)(mockedAuthenticator).routes
 
   "AuthRoutes" - {
     "should return a 401 - unauthorized if login fails" in {

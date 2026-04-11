@@ -2,19 +2,19 @@ package com.rockthejvm.jobsboard.fixtures
 
 import cats.effect.*
 import cats.data.*
-import com.rockthejvm.jobsboard.domain.security.Authenticator
 import tsec.authentication.IdentityStore
 import tsec.authentication.JWTAuthenticator
 import tsec.mac.jca.HMACSHA256
-import com.rockthejvm.jobsboard.domain.user.User
-import com.rockthejvm.jobsboard.domain.security.JWTToken
-import org.http4s.Request
+import tsec.authentication.SecuredRequestHandler
 import tsec.jws.mac.JWTMac
+import org.http4s.Request
 import org.http4s.Credentials
 import org.http4s.AuthScheme
 
-import scala.concurrent.duration.*
 import org.http4s.headers.Authorization
+import com.rockthejvm.jobsboard.domain.user.*
+import com.rockthejvm.jobsboard.domain.security.*
+import scala.concurrent.duration.*
 
 trait SecuredRouteFixture extends UserFixture {
   val mockedAuthenticator: Authenticator[IO] = {
@@ -40,4 +40,6 @@ trait SecuredRouteFixture extends UserFixture {
         Authorization(Credentials.Token(AuthScheme.Bearer, jwtString))
       }
   }
+
+  given securedHandler: SecuredHandler[IO] = SecuredRequestHandler(mockedAuthenticator)
 }
