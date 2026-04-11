@@ -3,10 +3,9 @@ package com.rockthejvm.jobsboard.fixtures
 import cats.effect.IO
 import cats.effect.unsafe.implicits.global
 import com.rockthejvm.jobsboard.domain.Role
-import com.rockthejvm.jobsboard.domain.user
+import com.rockthejvm.jobsboard.domain.user.*
 import tsec.passwordhashers.jca.BCrypt
-
-import user.*
+import com.rockthejvm.jobsboard.algebra.Users
 
 trait UserFixture {
   val adminEmail     = "admin@something.com"
@@ -72,4 +71,13 @@ trait UserFixture {
     Some("recruiter2"),
     Some("recruitercompany")
   )
+
+  val mockedUsers: Users[IO] = new Users[IO] {
+    override def find(email: String): IO[Option[User]] =
+      if (email == adminEmail) IO.pure(Some(admin))
+      else IO.pure(None)
+    override def create(user: User): IO[String]       = IO.pure(adminEmail)
+    override def update(user: User): IO[Option[User]] = IO.pure(Some(user))
+    override def delete(email: String): IO[Boolean]   = IO.pure(true)
+  }
 }

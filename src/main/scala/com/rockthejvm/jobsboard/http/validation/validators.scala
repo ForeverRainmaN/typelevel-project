@@ -4,7 +4,7 @@ import cats.*
 import cats.data.*
 import cats.data.Validated.*
 import cats.implicits.*
-import com.rockthejvm.jobsboard.domain.Job.JobInfo
+import com.rockthejvm.jobsboard.domain.job.JobInfo
 import com.rockthejvm.jobsboard.domain.auth.LoginInfo
 import com.rockthejvm.jobsboard.domain.auth.NewPasswordInfo
 import com.rockthejvm.jobsboard.domain.user.NewUserInfo

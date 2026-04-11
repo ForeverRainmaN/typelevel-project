@@ -4,7 +4,7 @@ import cats.effect.*
 import cats.effect.kernel.Async
 import cats.effect.unsafe.implicits.global
 import com.rockthejvm.jobsboard.algebra.*
-import com.rockthejvm.jobsboard.domain.Job.*
+import com.rockthejvm.jobsboard.domain.job.*
 import com.rockthejvm.jobsboard.logging.syntax.logError
 import doobie.*
 import doobie.ExecutionContexts

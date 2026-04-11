@@ -37,3 +37,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     other         TEXT,
     CONSTRAINT pk_jobs PRIMARY KEY (id)
 );
+
+CREATE TABLE IF NOT EXISTS recoverytokens (
+    email text NOT NULL PRIMARY KEY,
+    token text NOT NULL,
+    expiration bigint NOT NULL
+)

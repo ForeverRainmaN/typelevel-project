@@ -20,15 +20,6 @@ import scala.concurrent.duration.*
 
 class AuthSpec extends AllTestsSpec with UserFixture {
 
-  private val mockedUsers: Users[IO] = new Users[IO] {
-    override def find(email: String): IO[Option[User]] =
-      if (email === adminEmail) IO.pure(Some(admin))
-      else IO.pure(None)
-    override def create(user: User): IO[String]       = IO.pure(adminEmail)
-    override def update(user: User): IO[Option[User]] = IO.pure(Some(user))
-    override def delete(email: String): IO[Boolean]   = IO.pure(true)
-  }
-
   private val mockedConfig = SecurityConfig("secret", 1.day)
 
   "Auth 'algebra'" - {

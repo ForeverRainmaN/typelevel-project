@@ -1,14 +1,13 @@
 package com.rockthejvm.jobsboard.core
 
-import cats.effect.IO
+import cats.effect.*
 import cats.effect.testing.scalatest.AsyncIOSpec
 import com.rockthejvm.jobsboard.algebra.LiveJobs
 import com.rockthejvm.jobsboard.config.PostgresTestConfig
 import com.rockthejvm.jobsboard.config.syntax.*
-import com.rockthejvm.jobsboard.domain.Job.*
+import com.rockthejvm.jobsboard.domain.job.*
 import com.rockthejvm.jobsboard.domain.pagination.*
-import com.rockthejvm.jobsboard.fixtures.JobFixture
-import doobie.*
+import com.rockthejvm.jobsboard.fixtures.*
 import doobie.implicits.*
 import doobie.postgres.implicits.*
 import org.scalatest.freespec.AsyncFreeSpec

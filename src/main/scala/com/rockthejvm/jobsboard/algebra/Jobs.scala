@@ -1,10 +1,9 @@
 package com.rockthejvm.jobsboard.algebra
 
 import cats.*
-import cats.effect.IO
-import cats.effect.kernel.MonadCancelThrow
+import cats.effect.*
 import cats.implicits.*
-import com.rockthejvm.jobsboard.domain.Job.*
+import com.rockthejvm.jobsboard.domain.job.*
 import com.rockthejvm.jobsboard.domain.pagination.*
 import com.rockthejvm.jobsboard.logging.syntax.*
 import doobie.*

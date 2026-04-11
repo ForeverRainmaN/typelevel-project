@@ -3,7 +3,7 @@ package com.rockthejvm.jobsboard.http.routes
 import cats.effect.kernel.Concurrent
 import cats.implicits.*
 import com.rockthejvm.jobsboard.algebra.*
-import com.rockthejvm.jobsboard.domain.Job.*
+import com.rockthejvm.jobsboard.domain.job.*
 import com.rockthejvm.jobsboard.domain.pagination.Pagination
 import com.rockthejvm.jobsboard.domain.security.*
 import com.rockthejvm.jobsboard.domain.user.*

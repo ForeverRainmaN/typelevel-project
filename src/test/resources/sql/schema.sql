@@ -33,3 +33,9 @@ CREATE TABLE IF NOT EXISTS jobs (
     seniority        TEXT,
     other            TEXT
 );
+
+CREATE TABLE IF NOT EXISTS recoverytokens (
+    email text NOT NULL PRIMARY KEY,
+    token text NOT NULL,
+    expiration bigint NOT NULL
+)

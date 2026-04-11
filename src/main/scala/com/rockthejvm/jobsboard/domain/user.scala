@@ -5,7 +5,7 @@ import doobie.postgres.implicits.*
 import doobie.util.meta.Meta
 import tsec.authorization.AuthGroup
 import tsec.authorization.SimpleAuthEnum
-import com.rockthejvm.jobsboard.domain.Job.*
+import com.rockthejvm.jobsboard.domain.job.*
 
 enum Role {
   case ADMIN, RECRUITER
