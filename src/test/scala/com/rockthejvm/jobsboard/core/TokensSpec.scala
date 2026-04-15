@@ -22,7 +22,7 @@ class TokensSpec extends AllTestsSpec with UserFixture {
     "should not create a new token for a non-existing user" in {
       withTransactor(config) { xa =>
         for {
-          _      <- truncateTable(xa)("recoverytokens")
+          _      <- cleanTable(xa)("recoverytokens")
           tokens <- LiveTokens[IO](mockedUsers)(xa, TokenConfig(10000000L))
           token  <- tokens.getToken("somebody@someemail.com")
         } yield token
@@ -32,7 +32,7 @@ class TokensSpec extends AllTestsSpec with UserFixture {
     "should create a token for an existing user" in {
       withTransactor(config) { xa =>
         for {
-          _      <- truncateTable(xa)("recoverytokens")
+          _      <- cleanTable(xa)("recoverytokens")
           tokens <- LiveTokens[IO](mockedUsers)(xa, TokenConfig(10000000L))
           token  <- tokens.getToken(adminEmail)
         } yield token
@@ -42,7 +42,7 @@ class TokensSpec extends AllTestsSpec with UserFixture {
     "should not validate expired tokens" in {
       withTransactor(config) { xa =>
         for {
-          _          <- truncateTable(xa)("recoverytokens")
+          _          <- cleanTable(xa)("recoverytokens")
           tokens     <- LiveTokens[IO](mockedUsers)(xa, TokenConfig(100L))
           maybeToken <- tokens.getToken(adminEmail)
           _          <- IO.sleep(500.millis)
@@ -57,7 +57,7 @@ class TokensSpec extends AllTestsSpec with UserFixture {
     "should validate tokens that have not expired yet" in {
       withTransactor(config) { xa =>
         for {
-          _          <- truncateTable(xa)("recoverytokens")
+          _          <- cleanTable(xa)("recoverytokens")
           tokens     <- LiveTokens[IO](mockedUsers)(xa, TokenConfig(10000000L))
           maybeToken <- tokens.getToken(adminEmail)
           isTokenValid <- maybeToken match {
@@ -71,7 +71,7 @@ class TokensSpec extends AllTestsSpec with UserFixture {
     "should only validate tokens for the user that generated them" in {
       withTransactor(config) { xa =>
         for {
-          _          <- truncateTable(xa)("recoverytokens")
+          _          <- cleanTable(xa)("recoverytokens")
           tokens     <- LiveTokens[IO](mockedUsers)(xa, TokenConfig(10000000L))
           maybeToken <- tokens.getToken(adminEmail)
           isAdminTokenValid <- maybeToken match {

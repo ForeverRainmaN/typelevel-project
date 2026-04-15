@@ -18,7 +18,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should create a user" in {
       withTransactor(config) { xa =>
         for {
-          _                <- truncateTable(xa)("users")
+          _                <- cleanTable(xa)("users")
           users            <- LiveUsers[IO](xa)
           createdUserEmail <- users.create(admin)
           maybeUser <- sql"SELECT * FROM users WHERE email = $createdUserEmail"
@@ -35,7 +35,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should retrieve a user by email" in {
       withTransactor(config) { xa =>
         for {
-          _                <- truncateTable(xa)("users")
+          _                <- cleanTable(xa)("users")
           users            <- LiveUsers[IO](xa)
           createdUserEmail <- users.create(admin)
           maybeUser        <- users.find(createdUserEmail)
@@ -46,7 +46,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should return None if the email doesn't exist" in {
       withTransactor(config) { xa =>
         for {
-          _         <- truncateTable(xa)("users")
+          _         <- cleanTable(xa)("users")
           users     <- LiveUsers[IO](xa)
           maybeUser <- users.find("someRandomEmail@random.com")
         } yield maybeUser
@@ -56,7 +56,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should fail creating a new user if the email already exists" in {
       withTransactor(config) { xa =>
         for {
-          _       <- truncateTable(xa)("users")
+          _       <- cleanTable(xa)("users")
           users   <- LiveUsers[IO](xa)
           _       <- users.create(recruiter)
           outcome <- users.create(recruiter).attempt
@@ -74,7 +74,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should return None when updating a user that does not exist" in {
       withTransactor(config) { xa =>
         for {
-          _         <- truncateTable(xa)("users")
+          _         <- cleanTable(xa)("users")
           users     <- LiveUsers[IO](xa)
           maybeUser <- users.update(admin)
         } yield maybeUser
@@ -84,7 +84,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should update an existing user" in {
       withTransactor(config) { xa =>
         for {
-          _         <- truncateTable(xa)("users")
+          _         <- cleanTable(xa)("users")
           users     <- LiveUsers[IO](xa)
           userEmail <- users.create(admin)
           maybeUser <- users.update(updatedAdmin)
@@ -95,7 +95,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should delete a user" in {
       withTransactor(config) { xa =>
         for {
-          _         <- truncateTable(xa)("users")
+          _         <- cleanTable(xa)("users")
           users     <- LiveUsers[IO](xa)
           _         <- users.create(admin)
           isDeleted <- users.delete(admin.email)
@@ -113,7 +113,7 @@ class UsersSpec extends AllTestsSpec with Inside with UserFixture {
     "should NOT delete a user that does not exist" in {
       withTransactor(config) { xa =>
         for {
-          _         <- truncateTable(xa)("users")
+          _         <- cleanTable(xa)("users")
           users     <- LiveUsers[IO](xa)
           isDeleted <- users.delete(adminEmail)
         } yield isDeleted

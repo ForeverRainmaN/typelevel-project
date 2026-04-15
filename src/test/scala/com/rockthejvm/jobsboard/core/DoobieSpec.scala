@@ -24,8 +24,8 @@ trait DoobieSpec {
       )
     } yield xa
 
-  def truncateTable(xa: Transactor[IO])(table: String): IO[Unit] =
-    Fragment.const(s"TRUNCATE $table").update.run.transact(xa).void
+  def cleanTable(xa: Transactor[IO])(table: String): IO[Unit] =
+    Fragment.const(s"DELETE FROM $table").update.run.transact(xa).void
 
   def withTransactor[A](config: IO[PostgresTestConfig])(test: Transactor[IO] => IO[A]): IO[A] =
     config.flatMap { c =>

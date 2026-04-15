@@ -19,7 +19,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should return no job if the given UUID does not exist" in {
       withTransactor(config) { xa =>
         for {
-          _      <- truncateTable(xa)("jobs")
+          _      <- cleanTable(xa)("jobs")
           result <- LiveJobs[IO](xa).flatMap(_.find(notFoundJobUuid))
         } yield result
       }.asserting(_ shouldBe None)
@@ -28,7 +28,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should retrieve a job by id" in {
       withTransactor(config) { xa =>
         for {
-          _    <- truncateTable(xa)("jobs")
+          _    <- cleanTable(xa)("jobs")
           jobs <- LiveJobs[IO](xa)
           id   <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           job  <- jobs.find(id)
@@ -39,7 +39,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should retrieve all jobs" in {
       withTransactor(config) { xa =>
         for {
-          _    <- truncateTable(xa)("jobs")
+          _    <- cleanTable(xa)("jobs")
           jobs <- LiveJobs[IO](xa)
           id   <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           all  <- jobs.all()
@@ -53,7 +53,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should create a new job" in {
       withTransactor(config) { xa =>
         for {
-          _        <- truncateTable(xa)("jobs")
+          _        <- cleanTable(xa)("jobs")
           jobs     <- LiveJobs[IO](xa)
           jobId    <- jobs.create("daniel@rockthejvm.com", rockTheJvmNewJob)
           maybeJob <- jobs.find(jobId)
@@ -64,7 +64,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should return an updated job if it exists" in {
       withTransactor(config) { xa =>
         for {
-          _               <- truncateTable(xa)("jobs")
+          _               <- cleanTable(xa)("jobs")
           jobs            <- LiveJobs[IO](xa)
           id              <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           maybeUpdatedJob <- jobs.update(id, updatedAwesomeJob.jobInfo)
@@ -78,7 +78,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should return none when trying to update a job that does not exist" in {
       withTransactor(config) { xa =>
         for {
-          _   <- truncateTable(xa)("jobs")
+          _   <- cleanTable(xa)("jobs")
           res <- LiveJobs[IO](xa).flatMap(_.update(notFoundJobUuid, updatedAwesomeJob.jobInfo))
         } yield res
       }.asserting(_ shouldBe None)
@@ -87,7 +87,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should delete an existing job" in {
       withTransactor(config) { xa =>
         for {
-          _            <- truncateTable(xa)("jobs")
+          _            <- cleanTable(xa)("jobs")
           jobs         <- LiveJobs[IO](xa)
           id           <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           deletedCount <- jobs.delete(id)
@@ -102,7 +102,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should return zero updated rows if the job ID to delete is not found" in {
       withTransactor(config) { xa =>
         for {
-          _   <- truncateTable(xa)("jobs")
+          _   <- cleanTable(xa)("jobs")
           res <- LiveJobs[IO](xa).flatMap(_.delete(notFoundJobUuid))
         } yield res
       }.asserting(_ shouldBe 0)
@@ -111,7 +111,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should filter remote jobs" in {
       withTransactor(config) { xa =>
         for {
-          _    <- truncateTable(xa)("jobs")
+          _    <- cleanTable(xa)("jobs")
           jobs <- LiveJobs[IO](xa)
           _    <- jobs.create("remote@test.com", rockTheJvmNewJob.copy(remote = true))
           _    <- jobs.create("office@test.com", awesomeJob.jobInfo.copy(remote = false))
@@ -129,7 +129,7 @@ class JobsSpec extends AllTestsSpec with JobFixture {
     "should filter jobs by tags" in {
       withTransactor(config) { xa =>
         for {
-          _        <- truncateTable(xa)("jobs")
+          _        <- cleanTable(xa)("jobs")
           jobs     <- LiveJobs[IO](xa)
           _        <- jobs.create("daniel@rockthejvm.com", awesomeJob.jobInfo)
           filtered <- jobs.all(JobFilter(tags = List("scala", "cats", "zio")), Pagination.default)
