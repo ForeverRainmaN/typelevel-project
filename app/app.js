@@ -1,3 +1,3 @@
-import { RockTheJvmApp } from "./target/scala-3.4.0/app-fastopt";
+import { RockTheJvmApp } from "./target/scala-3.8.1/app-fastopt";
 
-RockTheJvmApp().doSomething("app")
+RockTheJvmApp().launch("app");

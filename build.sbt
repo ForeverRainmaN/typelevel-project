@@ -1,7 +1,7 @@
 ThisBuild / version := "1.0.1"
 
 lazy val rockthejvm    = "com.rockthejvm"
-lazy val scala3Version = "3.4.0"
+lazy val scala3Version = "3.8.1"
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 // Common - contains domain model
@@ -29,7 +29,7 @@ lazy val core = (crossProject(JSPlatform, JVMPlatform) in file("common"))
 // Frontend
 ///////////////////////////////////////////////////////////////////////////////////////////////////////////
 
-lazy val tyrianVersion = "0.6.1"
+lazy val tyrianVersion = "0.14.0"
 lazy val fs2DomVersion = "0.1.0"
 lazy val laikaVersion  = "0.19.0"
 lazy val circeVersion  = "0.14.8"
